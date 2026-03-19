@@ -2,27 +2,38 @@
   "name": "gogo-dino-annc",
   "version": "0.1.0",
   "private": true,
+  "main": "public/electron.js",
+  "homepage": "./",
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.126",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "electron-is-dev": "^3.0.1",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
+    "electron-is-dev": "^3.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "concurrently \"cross-env BROWSER=none react-scripts start\" \"wait-on http://localhost:3000 && electron .\"",
+    "dist": "react-scripts build && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.gogodino.annc",
+    "productName": "고고 다이노 안내 방송",
+    "files": [
+      "build/**/*",
+      "public/electron.js",
+      "public/logo.png"
+    ],
+    "compression": "maximum",
+    "win": {
+      "target": "nsis",
+      "icon": "public/logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -43,10 +54,24 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.126",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "electron": "^41.0.3",
     "electron-builder": "^26.8.1",
-    "wait-on": "^9.0.4"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-scripts": "5.0.1",
+    "sass": "^1.98.0",
+    "typescript": "^4.9.5",
+    "wait-on": "^9.0.4",
+    "web-vitals": "^2.1.4"
   }
 }
