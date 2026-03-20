@@ -31,7 +31,7 @@ const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     id: 'zipline',
     title: '짚라인',
     category: 'attraction',
-    audioFile: 'zip-line.wav',
+    audioFile: 'zip-line.mp3',
     defaultSchedule: { type: 'even-hour', time: '00:00', intervalMinutes: 30, enabled: true },
   },
   {
@@ -45,14 +45,14 @@ const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     id: 'meal-order',
     title: '식사주문 마감',
     category: 'closing',
-    audioFile: 'meal-order.wav',
+    audioFile: 'meal-order.mp3',
     defaultSchedule: { type: 'once', time: '18:15', intervalMinutes: 30, enabled: true },
   },
   {
     id: 'cafe-order',
     title: '카페음료 마감',
     category: 'closing',
-    audioFile: 'cafe-order.wav',
+    audioFile: 'cafe-order.mp3',
     defaultSchedule: { type: 'once', time: '18:50', intervalMinutes: 30, enabled: true },
   },
   {
@@ -125,7 +125,7 @@ function loadSettings(): Record<string, Schedule> {
   try {
     const saved = localStorage.getItem('ann-schedules-v1');
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { }
   return Object.fromEntries(ANNOUNCEMENT_DEFS.map(d => [d.id, { ...d.defaultSchedule }]));
 }
 
