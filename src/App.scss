@@ -1,0 +1,397 @@
+$primary: #2e7d32;
+$primary-light: #4caf50;
+$primary-dark: #1b5e20;
+$accent: #ff8f00;
+$accent-light: #ffb300;
+$bg: #f1f8e9;
+$card-bg: #ffffff;
+$text: #1a1a1a;
+$text-secondary: #555555;
+$border: #c8e6c9;
+$playing-bg: #e8f5e9;
+$playing-border: $primary-light;
+$settings-bg: #f5f5f5;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: $bg;
+  font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  color: $text;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+// Header
+.app-header {
+  background: $primary-dark;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+
+  .logo {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .header-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .current-time {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: $accent-light;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+// Volume control
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .volume-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+  }
+
+  .volume-slider {
+    width: 100px;
+    accent-color: $accent-light;
+    cursor: pointer;
+  }
+
+  .volume-value {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $accent-light;
+    font-variant-numeric: tabular-nums;
+    min-width: 34px;
+    text-align: right;
+  }
+}
+
+// Main
+.app-main {
+  flex: 1;
+  padding: 28px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+// Category section
+.category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid $border;
+}
+
+// Announcement cards
+.announcements {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.announcement-card {
+  background: $card-bg;
+  border: 2px solid $border;
+  border-radius: 14px;
+  padding: 20px 22px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+
+  &.playing {
+    border-color: $playing-border;
+    background: $playing-bg;
+    box-shadow: 0 4px 14px rgba(76, 175, 80, 0.2);
+  }
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+
+  .announcement-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $text;
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .settings-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: $text-secondary;
+    padding: 2px 4px;
+    line-height: 1;
+    border-radius: 5px;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.07);
+      color: $text;
+    }
+
+    &.active {
+      color: $primary;
+      background: rgba($primary, 0.1);
+    }
+  }
+}
+
+.schedule-info {
+  .schedule-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: $text-secondary;
+    background: #eeeeee;
+    border-radius: 20px;
+    padding: 2px 10px;
+
+    &.active {
+      color: $primary-dark;
+      background: #c8e6c9;
+    }
+  }
+}
+
+// Audio controls
+.audio-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seek-bar {
+  width: 100%;
+  accent-color: $primary;
+  cursor: pointer;
+  height: 4px;
+}
+
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $text-secondary;
+  font-variant-numeric: tabular-nums;
+}
+
+// Card action buttons
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.play-button,
+.stop-button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 9px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.3px;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.play-button {
+  background: $primary;
+  color: #fff;
+
+  &:hover {
+    background: $primary-light;
+  }
+}
+
+.stop-button {
+  background: $accent;
+  color: #fff;
+  animation: pulse 1.5s ease-in-out infinite;
+
+  &:hover {
+    background: $accent-light;
+    animation: none;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.78; }
+}
+
+// Settings panel
+.settings-panel {
+  margin-top: 4px;
+  background: $settings-bg;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid $border;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  .settings-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $text-secondary;
+    white-space: nowrap;
+  }
+}
+
+.settings-select {
+  font-size: 0.8rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: #fff;
+  color: $text;
+  cursor: pointer;
+  max-width: 140px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-light;
+  }
+}
+
+.settings-input {
+  font-size: 0.8rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: #fff;
+  color: $text;
+  max-width: 100px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-light;
+  }
+}
+
+.settings-input-number {
+  max-width: 64px;
+  text-align: center;
+}
+
+// Toggle switch
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 23px;
+  flex-shrink: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #cccccc;
+    border-radius: 23px;
+    transition: background 0.2s;
+
+    &::before {
+      content: '';
+      position: absolute;
+      height: 17px;
+      width: 17px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+  }
+
+  input:checked + .toggle-slider {
+    background: $primary;
+  }
+
+  input:checked + .toggle-slider::before {
+    transform: translateX(19px);
+  }
+}
+
+// Footer
+.app-footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 0.82rem;
+  color: $text-secondary;
+  border-top: 1px solid $border;
+  background: white;
+  margin-top: auto;
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
