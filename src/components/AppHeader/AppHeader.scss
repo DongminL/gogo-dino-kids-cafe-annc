@@ -1,0 +1,38 @@
+@use "../../styles/variables" as *;
+
+.app-header {
+  background: $primary-dark;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+
+  .logo {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .header-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    .current-time {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: $accent-light;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+    }
+  }
+}
