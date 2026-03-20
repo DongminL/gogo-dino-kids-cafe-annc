@@ -88,12 +88,12 @@ describe("loadSettings", () => {
     const saved: Record<string, Schedule> = {
       "dance-trampoline": { type: "once", time: "10:00", intervalMinutes: 30, enabled: false },
     };
-    localStorage.setItem("ann-schedules-v1", JSON.stringify(saved));
+    localStorage.setItem("annc-schedules", JSON.stringify(saved));
     expect(loadSettings()).toEqual(saved);
   });
 
   it("localStorage에 잘못된 JSON이 있으면 기본값 반환", () => {
-    localStorage.setItem("ann-schedules-v1", "invalid-json{{{");
+    localStorage.setItem("annc-schedules", "invalid-json{{{");
     const settings = loadSettings();
     ANNOUNCEMENT_DEFS.forEach((def) => {
       expect(settings[def.id]).toEqual(def.defaultSchedule);
