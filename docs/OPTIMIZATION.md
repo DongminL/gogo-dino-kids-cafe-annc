@@ -35,8 +35,8 @@
 
 | 항목 | CRA | Vite |
 |---|---|---|
-| JS 번들 크기 | ~1.5MB | **202 kB** (~7.5x 감소) |
-| CSS 크기 | ~20 kB | **5 kB** |
+| JS 번들 크기 | ~1.5MB | **202kB** (~7.5x 감소) |
+| CSS 크기 | ~20kB | **5kB** |
 | 소스맵 | 생성됨 (~2–4MB) | **미생성** (기본값) |
 | 빌드 시간 | 느림 (30초+) | **빠름 (1–2초)** |
 
@@ -125,19 +125,6 @@ if (!app.isPackaged) {
 
 `app.isPackaged`는 `electron-is-dev`와 동일한 역할을 하는 Electron 내장 프로퍼티다.
 별도 패키지 없이 쓸 수 있으므로 `electron-is-dev`를 `dependencies`에서 완전히 제거했다.
-
-#### 테스트 라이브러리 제거 (devDependencies)
-
-exe 크기에는 영향 없지만(devDependencies는 패키징에 포함되지 않음),
-`npm install` 속도와 `node_modules` 용량 개선을 위해 제거했다.
-
-제거된 패키지:
-- `@testing-library/dom`
-- `@testing-library/jest-dom`
-- `@testing-library/react`
-- `@testing-library/user-event`
-- `@types/jest`
-- `web-vitals`
 
 ---
 

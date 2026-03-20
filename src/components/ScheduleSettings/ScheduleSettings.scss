@@ -1,0 +1,109 @@
+@use "../../styles/variables" as *;
+
+.settings-panel {
+  margin-top: 4px;
+  background: $settings-bg;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid $border;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  .settings-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $text-secondary;
+    white-space: nowrap;
+  }
+}
+
+.settings-select {
+  font-size: 0.8rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: #fff;
+  color: $text;
+  cursor: pointer;
+  max-width: 140px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-light;
+  }
+}
+
+.settings-input {
+  font-size: 0.8rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  padding: 4px 6px;
+  background: #fff;
+  color: $text;
+  max-width: 100px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-light;
+  }
+}
+
+.settings-input-number {
+  max-width: 64px;
+  text-align: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 23px;
+  flex-shrink: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #cccccc;
+    border-radius: 23px;
+    transition: background 0.2s;
+
+    &::before {
+      content: "";
+      position: absolute;
+      height: 17px;
+      width: 17px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+  }
+
+  input:checked + .toggle-slider {
+    background: $primary;
+  }
+
+  input:checked + .toggle-slider::before {
+    transform: translateX(19px);
+  }
+}

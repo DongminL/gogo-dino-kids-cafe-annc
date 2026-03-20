@@ -1,0 +1,29 @@
+@use "../../styles/variables" as *;
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .volume-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+  }
+
+  .volume-slider {
+    width: 100px;
+    accent-color: $accent-light;
+    cursor: pointer;
+  }
+
+  .volume-value {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $accent-light;
+    font-variant-numeric: tabular-nums;
+    min-width: 34px;
+    text-align: right;
+  }
+}
