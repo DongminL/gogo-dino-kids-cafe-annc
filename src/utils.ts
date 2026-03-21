@@ -36,9 +36,10 @@ export function getScheduleLabel(schedule: Schedule): string {
 }
 
 export function loadSettings(): Record<string, Schedule> {
+  const defaults = Object.fromEntries(ANNOUNCEMENT_DEFS.map((d) => [d.id, { ...d.defaultSchedule }]));
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return JSON.parse(saved);
+    if (saved) return { ...defaults, ...JSON.parse(saved) };
   } catch {}
-  return Object.fromEntries(ANNOUNCEMENT_DEFS.map((d) => [d.id, { ...d.defaultSchedule }]));
+  return defaults;
 }
