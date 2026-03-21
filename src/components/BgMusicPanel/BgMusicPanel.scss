@@ -4,392 +4,587 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  background: $card-bg;
+  background: white;
   border: 1px solid $border;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  height: 100%;
 }
 
-// ── Playlist bar ─────────────────────────────────────────────────────────────
-.bg-music-playlist-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 14px 18px;
-  background: $playing-bg;
+.bg-music-header-controls {
+  padding: 12px 20px;
+  background: #fdfdfd;
   border-bottom: 1px solid $border;
+  display: flex;
+  justify-content: flex-end;
+}
 
-  &__left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+.bg-music-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// ── Sections ─────────────────────────────────────────────────────────────
+.bg-music-sidebar-content {
+  border-right: 1px solid $border;
+  background: #fcfdfc;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
+  min-height: 0;
+
+  &::-webkit-scrollbar {
+    width: 6px;
   }
-
-  &__right {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  &::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
   }
 }
 
-.bg-music-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: $text-secondary;
-  white-space: nowrap;
-}
-
-.bg-music-select {
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid $border;
-  border-radius: 6px;
-  font-size: 0.9rem;
+.bg-music-main-content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
   background: white;
-  color: $text;
-  cursor: pointer;
-  max-width: 200px;
+  min-height: 0;
+  overflow: hidden;
+}
 
-  &:focus {
-    outline: 2px solid $primary-light;
-    border-color: $primary-light;
+.bg-music-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+
+  &--full {
+    flex: 1;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: $text;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+    }
   }
 }
 
-.bg-music-new-playlist {
+.bg-music-playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bg-music-playlist-item {
+  position: relative; // For confirm overlay
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid $border;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden; // Keep overlay inside
+
+  &:hover {
+    border-color: $primary-light;
+    background: #f7f9f7;
+  }
+
+  &.active {
+    border-color: $primary;
+    background: #f0f7f1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+    .name { color: $primary; font-weight: 700; }
+  }
+
+  .name {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #444;
+  }
+
+  .count {
+    font-size: 0.75rem;
+    color: #888;
+    background: #efefef;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  &.confirm-delete {
+    background: #fff5f5 !important;
+    border-color: #ffcdd2 !important;
+    .name { color: #d32f2f; }
+  }
+
+  .delete-btn {
+    border: none;
+    background: transparent;
+    color: #bbb;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px;
+    transition: all 0.2s;
+
+    &:hover { color: #d32f2f; }
+  }
 }
 
-.bg-music-input {
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid $border;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: $text;
-  width: 160px;
+.bg-music-playlist-divider {
+  height: 1px;
+  background: $border;
+  margin: 4px 0;
+  opacity: 0.5;
+}
 
-  &:focus {
-    outline: 2px solid $primary-light;
-    border-color: $primary-light;
+.bg-music-confirm-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bgMusicFadeIn 0.2s ease-out;
+
+  .modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 320px;
+    padding: 24px 0;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    animation: bgMusicModalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+
+  .modal-header {
+    padding: 0 24px 16px;
+    h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #333;
+      font-weight: 800;
+    }
+  }
+
+  .modal-divider {
+    height: 1px;
+    background: #f0f0f0;
+    width: 100%;
+  }
+
+  .modal-body {
+    padding: 20px 24px;
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.6;
+    word-break: keep-all;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px 0;
+
+    .bg-music-btn {
+      padding: 8px 20px;
+      height: auto;
+    }
+  }
+}
+
+@keyframes bgMusicModalScale {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bgMusicFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// ── Playlist Menu ─────────────────────────────────────────────────────────────
+.bg-music-add-to-playlist-container {
+  position: relative;
+}
+
+.bg-music-playlist-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 180px;
+  background: white;
+  border: 1px solid $border;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  margin-top: 5px;
+  padding: 6px 0;
+  animation: bgMusicSlideIn 0.2s ease-out;
+
+  .menu-header {
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #f5f5f5;
+    margin-bottom: 4px;
+  }
+
+  .menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    color: #444;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover:not(.disabled) {
+      background: #f0f7f1;
+      color: $primary;
+    }
+
+    &.disabled {
+      color: #ccc;
+      cursor: default;
+      font-style: italic;
+    }
+  }
+}
+
+@keyframes bgMusicSlideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ── Add Playlist Area ───────────────────────────────────────────────────
+.bg-music-add-playlist-area {
+  margin-bottom: 8px;
+}
+
+.bg-music-playlist-add-trigger {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: white;
+  border: 1px dashed $border;
+  border-radius: 8px;
+  color: $primary;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .icon {
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-top: -2px;
+  }
+
+  &:hover {
+    background: #fdfdfd;
+    border-color: $primary-light;
+    border-style: solid;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+}
+
+.bg-music-add-form {
+  background: white;
+  border: 1px solid $primary-light;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba($primary, 0.1);
+
+  &.animate-in {
+    animation: bgMusicFormSlideDown 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .bg-music-input-field {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.15);
+    }
+
+    &::placeholder {
+      color: #ccc;
+    }
+  }
+
+  &-footer {
+    display: flex;
+    gap: 8px;
+
+    .bg-music-btn {
+      flex: 1;
+      height: 36px;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+@keyframes bgMusicFormSlideDown {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// ── Track list (Main) ─────────────────────────────────────────────────────────
+.bg-music-track-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: white;
+  min-height: 200px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-thumb { background: #eee; border-radius: 4px; }
+}
+
+.bg-music-track-item {
+  position: relative; // For confirm overlay
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: background 0.1s;
+  // overflow: hidden; // Removed to allow playlist menu to show outside the item
+
+  &:hover { background: #fafafa; }
+
+  &--confirming {
+    background: #fff5f5 !important;
+    border-color: #ffcdd2 !important;
+    .bg-music-track-item__name { color: #d32f2f; font-weight: 700; }
+  }
+
+  &--playing {
+    background: #f1f8f2 !important;
+    .bg-music-track-item__num, 
+    .bg-music-track-item__name { color: $primary; font-weight: 700; }
+  }
+
+  &--menu-open {
+    z-index: 10;
+  }
+
+  &__num {
+    width: 24px;
+    font-size: 0.8rem;
+    color: #999;
+    text-align: center;
+  }
+
+  &__name {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__handle {
+    width: 24px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #999;
+    }
+  }
+
+  &--editing {
+    &:hover {
+      background: #fdfdfd;
+    }
+  }
+
+  &--dragged {
+    background: #f0f7f1 !important;
+    border: 1px dashed $primary !important;
+    opacity: 0.6;
+    z-index: 100;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover &__actions,
+  &--menu-open &__actions,
+  &--editing &__actions { opacity: 1; }
+}
+
+// ── Labels & Utility ─────────────────────────────────────────────────────────
+.bg-music-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #666;
+}
+
+.bg-music-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #aaa;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.6;
+  padding: 40px;
+}
+
+.bg-music-empty-small {
+  padding: 20px;
+  text-align: center;
+  color: #ccc;
+  font-size: 0.8rem;
 }
 
 .bg-music-toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
   font-size: 0.85rem;
-  color: $text-secondary;
+  color: #666;
   font-weight: 600;
-  user-select: none;
 
-  input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: $primary;
-    cursor: pointer;
-  }
+  input { accent-color: $primary; }
 }
 
-// ── Buttons ──────────────────────────────────────────────────────────────────
 .bg-music-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  padding: 0 14px;
-  border: 1px solid $border;
-  border-radius: 6px;
+  border: 1px solid #ddd;
   background: white;
-  color: $text;
+  border-radius: 6px;
+  padding: 4px 12px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: all 0.2s;
 
-  &:hover:not(:disabled) {
-    background: $playing-bg;
-    border-color: $primary-light;
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
+  &:hover { background: #f5f5f5; border-color: #ccc; }
 
   &--primary {
     background: $primary;
     color: white;
     border-color: $primary;
-
-    &:hover:not(:disabled) {
-      background: $primary-light;
-      border-color: $primary-light;
-    }
+    &:hover { background: $primary-light; border-color: $primary-light; }
   }
 
   &--danger {
-    color: #c62828;
-    border-color: #ffcdd2;
-
-    &:hover:not(:disabled) {
-      background: #ffebee;
-      border-color: #ef9a9a;
-    }
+    color: #d32f2f;
+    &:hover { background: #ffebee; border-color: #ffcdd2; }
   }
 
-  &--icon {
-    padding: 0 10px;
-    font-size: 0.95rem;
-  }
-
-  &--sm {
-    height: 26px;
-    padding: 0 8px;
-    font-size: 0.75rem;
-  }
-
-  &--transport {
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    font-size: 1.1rem;
-    border-radius: 50%;
-    border-color: $border;
-  }
-
-  &--play {
-    width: 48px;
-    height: 48px;
-    font-size: 1.3rem;
-    background: $primary;
+  &--danger-filled {
+    background: #d32f2f;
     color: white;
-    border-color: $primary;
-
-    &:hover:not(:disabled) {
-      background: $primary-light;
-      border-color: $primary-light;
-    }
-  }
-}
-
-// ── Track list ────────────────────────────────────────────────────────────────
-.bg-music-track-list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 80px;
-  max-height: 260px;
-  overflow-y: auto;
-  padding: 8px 0;
-}
-
-.bg-music-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px;
-  color: $text-secondary;
-  font-size: 0.88rem;
-}
-
-.bg-music-track-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 18px;
-  transition: background 0.1s;
-  cursor: default;
-
-  &:hover {
-    background: $playing-bg;
+    border-color: #d32f2f;
+    &:hover { background: #b71c1c; border-color: #b71c1c; }
   }
 
-  &--playing {
-    background: $playing-bg;
-
-    .bg-music-track-item__num {
-      color: $primary;
-      font-weight: 700;
-    }
-
-    .bg-music-track-item__name {
-      color: $primary;
-      font-weight: 600;
-    }
+  &--sm { height: 28px; padding: 0 8px; font-size: 0.8rem; }
+  &--icon { padding: 0; width: 28px; display: flex; align-items: center; justify-content: center; }
+  
+  &--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: #888;
+    &:hover { background: #f0f0f0; color: #555; }
   }
 
-  &__num {
-    min-width: 24px;
-    font-size: 0.78rem;
-    color: $text-secondary;
-    text-align: right;
-  }
-
-  &__name {
-    flex: 1;
-    font-size: 0.9rem;
-    color: $text;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__actions {
-    display: flex;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-
-  &:hover &__actions {
-    opacity: 1;
-  }
-}
-
-.bg-music-library-add {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 4px 18px 6px;
-}
-
-.bg-music-select--grow {
-  flex: 1;
-  max-width: none;
-}
-
-.bg-music-add-track-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 6px 18px;
-  padding: 8px;
-  border: 1px dashed $border;
-  border-radius: 6px;
-  background: transparent;
-  color: $text-secondary;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-
-  &:hover:not(:disabled) {
-    background: $playing-bg;
-    border-color: $primary-light;
-    color: $primary;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
+  &--danger-text {
+    border-color: transparent;
+    background: transparent;
+    color: #d32f2f;
+    &:hover { background: #fff5f5; color: #b71c1c; }
   }
 }
 
 .bg-music-add-error {
-  margin: 0 18px 6px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-  font-size: 0.8rem;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #d32f2f;
 }
 
-// ── Controls ──────────────────────────────────────────────────────────────────
-.bg-music-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 14px 18px;
-  border-top: 1px solid $border;
-  background: $settings-bg;
-
-  &__transport {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-
-  &__center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0;
-  }
-
-  &__track-name {
-    font-size: 0.88rem;
-    color: $text-secondary;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-style: italic;
-  }
-
-  &__volume {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-}
-
-.bg-music-seek {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  &__bar {
-    flex: 1;
-    accent-color: $primary;
-    cursor: pointer;
-    height: 4px;
-
-    &:disabled {
-      opacity: 0.3;
-      cursor: default;
-    }
-  }
-
-  &__time {
-    font-size: 0.75rem;
-    color: $text-secondary;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    min-width: 30px;
-
-    &:last-child {
-      text-align: right;
-    }
-  }
-}
-
-.bg-music-volume-label {
-  font-size: 0.82rem;
-  color: $text-secondary;
-  white-space: nowrap;
-}
-
-.bg-music-volume-slider {
-  width: 100px;
-  accent-color: $primary;
-  cursor: pointer;
-}
-
-.bg-music-volume-value {
-  font-size: 0.82rem;
-  color: $text-secondary;
-  min-width: 34px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+.bg-music-input {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0 8px;
+  outline: none;
+  &:focus { border-color: $primary; }
 }

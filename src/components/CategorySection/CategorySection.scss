@@ -3,21 +3,11 @@
 .category-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.section-title {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: $text-secondary;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid $border;
 }
 
 .announcements {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: flex-start;
 }

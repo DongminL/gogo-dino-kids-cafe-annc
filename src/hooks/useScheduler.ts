@@ -4,13 +4,21 @@ import type { Schedule } from "../types/schedule";
 import { ANNOUNCEMENT_DEFS } from "../constants";
 
 export function shouldFire(schedule: Schedule, hh: number, mm: number): boolean {
-  if (!schedule.enabled || schedule.type === "none") return false;
-  if (schedule.type === "once" && schedule.time) {
-    const [sh, sm] = schedule.time.split(":").map(Number);
+  if (!schedule.enabled) return false;
+  // Parse schedule time (expected "HH:mm")
+  const type = schedule.type;
+  const timeStr = schedule.time || "00:00";
+  const [sh, sm] = timeStr.split(":").map(Number);
+
+  if (type === "once") {
     return hh === sh && mm === sm;
   }
-  if (schedule.type === "odd-hour") return mm === 0 && hh % 2 === 1;
-  if (schedule.type === "even-hour") return mm === 0 && hh % 2 === 0;
+  if (type === "odd-hour") {
+    return mm === sm && hh % 2 === 1;
+  }
+  if (type === "even-hour") {
+    return mm === sm && hh % 2 === 0;
+  }
   if (schedule.type === "interval" && schedule.intervalMinutes > 0) {
     const totalMins = hh * 60 + mm;
     return totalMins > 0 && totalMins % schedule.intervalMinutes === 0;

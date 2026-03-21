@@ -13,6 +13,7 @@ interface BgMusicSettings {
   currentTrackIndex: number;
   autoplay: boolean;
   volume: number;
+  loopAll: boolean;
 }
 
 function defaultSettings(): BgMusicSettings {
@@ -23,6 +24,7 @@ function defaultSettings(): BgMusicSettings {
     currentTrackIndex: 0,
     autoplay: false,
     volume: 0.7,
+    loopAll: false,
   };
 }
 
@@ -36,8 +38,11 @@ function loadSettings(): BgMusicSettings {
 
 export function useBgMusic() {
   const [settings, setSettings] = useState<BgMusicSettings>(loadSettings);
+  const [playingPlaylistId, setPlayingPlaylistId] = useState<string | null>(
+    () => loadSettings().currentPlaylistId
+  );
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrackIndex, setCurrentTrackIndexState] = useState(
+  const [playingTrackIndex, setPlayingTrackIndex] = useState(
     () => loadSettings().currentTrackIndex
   );
   const [progress, setProgress] = useState({ current: 0, duration: 0 });
@@ -47,7 +52,7 @@ export function useBgMusic() {
   const volumeRef = useRef(settings.volume);
   const isFadedRef = useRef(false);
   const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const currentTrackIndexRef = useRef(currentTrackIndex);
+  const playingTrackIndexRef = useRef(playingTrackIndex);
   const settingsRef = useRef(settings);
   const playGenerationRef = useRef(0);
 
@@ -57,15 +62,15 @@ export function useBgMusic() {
   }, [settings]);
 
   useEffect(() => {
-    currentTrackIndexRef.current = currentTrackIndex;
-  }, [currentTrackIndex]);
+    playingTrackIndexRef.current = playingTrackIndex;
+  }, [playingTrackIndex]);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ ...settings, currentTrackIndex })
+      JSON.stringify({ ...settings, currentTrackIndex: playingTrackIndex })
     );
-  }, [settings, currentTrackIndex]);
+  }, [settings, playingTrackIndex]);
 
   const revokeObjectUrl = useCallback(() => {
     if (objectUrlRef.current) {
@@ -93,19 +98,25 @@ export function useBgMusic() {
     }
   }, []);
 
-  const getCurrentPlaylist = useCallback((): Playlist | null => {
-    const s = settingsRef.current;
-    if (!s.currentPlaylistId) return null;
-    return s.playlists.find((p) => p.id === s.currentPlaylistId) ?? null;
-  }, []);
 
   const playAtIndex = useCallback(
-    async (index: number) => {
+    async (index: number, playlistIdOverride?: string | null) => {
       const generation = ++playGenerationRef.current;
-      const playlist = getCurrentPlaylist();
-      if (!playlist || playlist.trackIds.length === 0) return;
+      
+      // 만약 playlistIdOverride가 주어지면 해당 플레이리스트를 사용하고, 
+      // 아니면 현재 재생 중인 플레이리스트를 사용합니다.
+      const targetPlaylistId = playlistIdOverride !== undefined ? playlistIdOverride : playingPlaylistId;
+      const s = settingsRef.current;
+      const playlist = targetPlaylistId === null 
+        ? null 
+        : s.playlists.find((p) => p.id === targetPlaylistId) ?? null;
 
-      const trackId = playlist.trackIds[index];
+      // 전체 목록 재생 지원을 위해 playlist가 null인 경우(전체 목록)도 고려
+      const trackIds = playlist ? playlist.trackIds : s.trackMeta.map(t => t.id);
+      
+      if (trackIds.length === 0) return;
+
+      const trackId = trackIds[index];
       if (!trackId) return;
 
       stopInternal();
@@ -127,17 +138,23 @@ export function useBgMusic() {
         setProgress({ current: 0, duration: audio.duration || 0 });
       });
 
-      setCurrentTrackIndexState(index);
-      currentTrackIndexRef.current = index;
+      setPlayingPlaylistId(targetPlaylistId);
+      setPlayingTrackIndex(index);
+      playingTrackIndexRef.current = index;
 
       audio.onended = () => {
-        const pl = getCurrentPlaylist();
-        if (!pl) return;
+        const sCurrent = settingsRef.current;
+        const pl = targetPlaylistId === null 
+          ? null 
+          : sCurrent.playlists.find((p) => p.id === targetPlaylistId) ?? null;
+        
+        const currentTrackIds = pl ? pl.trackIds : sCurrent.trackMeta.map(t => t.id);
         const nextIndex = index + 1;
-        if (nextIndex < pl.trackIds.length) {
-          playAtIndex(nextIndex);
-        } else if (pl.loop) {
-          playAtIndex(0);
+        
+        if (nextIndex < currentTrackIds.length) {
+          playAtIndex(nextIndex, targetPlaylistId);
+        } else if (pl ? pl.loop : sCurrent.loopAll) {
+          playAtIndex(0, targetPlaylistId);
         } else {
           setIsPlaying(false);
           audioRef.current = null;
@@ -159,7 +176,7 @@ export function useBgMusic() {
         revokeObjectUrl();
       });
     },
-    [getCurrentPlaylist, stopInternal, revokeObjectUrl]
+    [playingPlaylistId, stopInternal, revokeObjectUrl]
   );
 
   // Request persistent storage on mount to prevent browser eviction of large data
@@ -173,10 +190,15 @@ export function useBgMusic() {
     if (autoplayDoneRef.current) return;
     autoplayDoneRef.current = true;
     const s = settingsRef.current;
-    if (s.autoplay && s.currentPlaylistId) {
-      const playlist = s.playlists.find((p) => p.id === s.currentPlaylistId);
-      if (playlist && playlist.trackIds.length > 0) {
-        const idx = Math.min(s.currentTrackIndex, playlist.trackIds.length - 1);
+    if (s.autoplay) {
+      if (s.currentPlaylistId) {
+        const playlist = s.playlists.find((p) => p.id === s.currentPlaylistId);
+        if (playlist && playlist.trackIds.length > 0) {
+          const idx = Math.min(s.currentTrackIndex, playlist.trackIds.length - 1);
+          playAtIndex(idx);
+        }
+      } else if (s.trackMeta.length > 0) {
+        const idx = Math.min(s.currentTrackIndex, s.trackMeta.length - 1);
         playAtIndex(idx);
       }
     }
@@ -192,9 +214,15 @@ export function useBgMusic() {
 
   const play = useCallback(
     (index?: number) => {
-      playAtIndex(index ?? currentTrackIndexRef.current);
+      // index가 명시적으로 주어지면, 현재 '선택된' 플레이리스트에서 재생합니다.
+      if (index !== undefined) {
+        playAtIndex(index, settingsRef.current.currentPlaylistId);
+      } else {
+        // index가 없으면(바텀 바 등에서 재생 시), 현재 재생 중인 컨텍스트를 유지합니다.
+        playAtIndex(playingTrackIndexRef.current, playingPlaylistId);
+      }
     },
-    [playAtIndex]
+    [playAtIndex, playingPlaylistId]
   );
 
   const pause = useCallback(() => {
@@ -215,20 +243,30 @@ export function useBgMusic() {
   }, [isPlaying, pause, play]);
 
   const next = useCallback(() => {
-    const playlist = getCurrentPlaylist();
-    if (!playlist || playlist.trackIds.length === 0) return;
-    const nextIndex = (currentTrackIndexRef.current + 1) % playlist.trackIds.length;
-    playAtIndex(nextIndex);
-  }, [getCurrentPlaylist, playAtIndex]);
+    const s = settingsRef.current;
+    const pl = playingPlaylistId === null 
+      ? null 
+      : s.playlists.find((p) => p.id === playingPlaylistId) ?? null;
+    
+    const trackIds = pl ? pl.trackIds : s.trackMeta.map(t => t.id);
+    if (trackIds.length === 0) return;
+    
+    const nextIndex = (playingTrackIndexRef.current + 1) % trackIds.length;
+    playAtIndex(nextIndex, playingPlaylistId);
+  }, [playingPlaylistId, playAtIndex]);
 
   const prev = useCallback(() => {
-    const playlist = getCurrentPlaylist();
-    if (!playlist || playlist.trackIds.length === 0) return;
-    const prevIndex =
-      (currentTrackIndexRef.current - 1 + playlist.trackIds.length) %
-      playlist.trackIds.length;
-    playAtIndex(prevIndex);
-  }, [getCurrentPlaylist, playAtIndex]);
+    const s = settingsRef.current;
+    const pl = playingPlaylistId === null 
+      ? null 
+      : s.playlists.find((p) => p.id === playingPlaylistId) ?? null;
+    
+    const trackIds = pl ? pl.trackIds : s.trackMeta.map(t => t.id);
+    if (trackIds.length === 0) return;
+    
+    const prevIndex = (playingTrackIndexRef.current - 1 + trackIds.length) % trackIds.length;
+    playAtIndex(prevIndex, playingPlaylistId);
+  }, [playingPlaylistId, playAtIndex]);
 
   const setVolume = useCallback((v: number) => {
     volumeRef.current = v;
@@ -295,8 +333,14 @@ export function useBgMusic() {
   const removeTrack = useCallback(
     async (trackId: string) => {
       await deleteTrackBlob(trackId);
-      const currentPlaylist = getCurrentPlaylist();
-      const currentTrackId = currentPlaylist?.trackIds[currentTrackIndexRef.current];
+      const s = settingsRef.current;
+      const pl = playingPlaylistId === null 
+        ? null 
+        : s.playlists.find((p) => p.id === playingPlaylistId) ?? null;
+      
+      const trackIds = pl ? pl.trackIds : s.trackMeta.map(t => t.id);
+      const currentTrackId = trackIds[playingTrackIndexRef.current];
+      
       if (currentTrackId === trackId) stopInternal();
       setSettings((prev) => ({
         ...prev,
@@ -307,7 +351,7 @@ export function useBgMusic() {
         })),
       }));
     },
-    [getCurrentPlaylist, stopInternal]
+    [playingPlaylistId, stopInternal]
   );
 
   // Playlist management
@@ -338,11 +382,11 @@ export function useBgMusic() {
 
   const setCurrentPlaylist = useCallback(
     (id: string | null) => {
-      stopInternal();
-      setCurrentTrackIndexState(0);
+      // 재생을 중단하지 않습니다. 인덱스도 초기화하지 않습니다.
+      // 인덱스는 재생이 시작될 때 0으로 리셋하면 됩니다.
       setSettings((prev) => ({ ...prev, currentPlaylistId: id }));
     },
-    [stopInternal]
+    []
   );
 
   const addTrackToPlaylist = useCallback((playlistId: string, trackId: string) => {
@@ -354,46 +398,83 @@ export function useBgMusic() {
     }));
   }, []);
 
-  const setLoop = useCallback((playlistId: string, loop: boolean) => {
-    setSettings((prev) => ({
-      ...prev,
-      playlists: prev.playlists.map((p) =>
-        p.id === playlistId ? { ...p, loop } : p
-      ),
-    }));
+  const setLoop = useCallback((playlistId: string | null, loop: boolean) => {
+    setSettings((prev) => {
+      if (playlistId === null) {
+        return { ...prev, loopAll: loop };
+      }
+      return {
+        ...prev,
+        playlists: prev.playlists.map((p) =>
+          p.id === playlistId ? { ...p, loop } : p
+        ),
+      };
+    });
   }, []);
 
   const removeTrackFromPlaylist = useCallback(
-    (playlistId: string, trackId: string) => {
-      const currentPlaylist = getCurrentPlaylist();
-      const currentTrackId = currentPlaylist?.trackIds[currentTrackIndexRef.current];
-      if (playlistId === currentPlaylist?.id && currentTrackId === trackId) {
+    (playlistId: string, index: number) => {
+      const s = settingsRef.current;
+      const targetPlaylist = s.playlists.find((p) => p.id === playlistId);
+      if (!targetPlaylist) return;
+
+      if (playlistId === playingPlaylistId && playingTrackIndexRef.current === index) {
         stopInternal();
       }
-      setSettings((prev) => ({
-        ...prev,
-        playlists: prev.playlists.map((p) =>
-          p.id === playlistId
-            ? { ...p, trackIds: p.trackIds.filter((id) => id !== trackId) }
-            : p
-        ),
-      }));
-    },
-    [getCurrentPlaylist, stopInternal]
-  );
 
-  const reorderTrack = useCallback(
-    (playlistId: string, fromIndex: number, toIndex: number) => {
       setSettings((prev) => ({
         ...prev,
         playlists: prev.playlists.map((p) => {
           if (p.id !== playlistId) return p;
-          const ids = [...p.trackIds];
-          const [removed] = ids.splice(fromIndex, 1);
-          ids.splice(toIndex, 0, removed);
-          return { ...p, trackIds: ids };
+          const newTrackIds = [...p.trackIds];
+          newTrackIds.splice(index, 1);
+          return { ...p, trackIds: newTrackIds };
         }),
       }));
+    },
+    [playingPlaylistId, stopInternal]
+  );
+
+  const setPlaylistTracks = useCallback(
+    (playlistId: string | null, trackIds: string[]) => {
+      setSettings((prev) => {
+        if (playlistId === null) {
+          const newTrackMeta = trackIds
+            .map((id) => prev.trackMeta.find((t) => t.id === id))
+            .filter((t): t is Track => !!t);
+          return { ...prev, trackMeta: newTrackMeta };
+        }
+        return {
+          ...prev,
+          playlists: prev.playlists.map((p) =>
+            p.id === playlistId ? { ...p, trackIds: [...trackIds] } : p
+          ),
+        };
+      });
+    },
+    []
+  );
+
+  const reorderTrack = useCallback(
+    (playlistId: string | null, fromIndex: number, toIndex: number) => {
+      setSettings((prev) => {
+        if (playlistId === null) {
+          const ids = [...prev.trackMeta];
+          const [removed] = ids.splice(fromIndex, 1);
+          ids.splice(toIndex, 0, removed);
+          return { ...prev, trackMeta: ids };
+        }
+        return {
+          ...prev,
+          playlists: prev.playlists.map((p) => {
+            if (p.id !== playlistId) return p;
+            const ids = [...p.trackIds];
+            const [removed] = ids.splice(fromIndex, 1);
+            ids.splice(toIndex, 0, removed);
+            return { ...p, trackIds: ids };
+          }),
+        };
+      });
     },
     []
   );
@@ -409,25 +490,29 @@ export function useBgMusic() {
     setSettings((prev) => ({ ...prev, autoplay: v }));
   }, []);
 
-  const currentPlaylist =
-    settings.playlists.find((p) => p.id === settings.currentPlaylistId) ?? null;
-  const currentTrack = currentPlaylist
+  const playingPlaylist =
+    settings.playlists.find((p) => p.id === playingPlaylistId) ?? null;
+  const currentTrack = playingPlaylist
     ? (settings.trackMeta.find(
-        (t) => t.id === currentPlaylist.trackIds[currentTrackIndex]
+        (t) => t.id === playingPlaylist.trackIds[playingTrackIndex]
       ) ?? null)
-    : null;
+    : (playingPlaylistId === null 
+        ? (settings.trackMeta[playingTrackIndex] ?? null)
+        : null);
 
   return {
     tracks: settings.trackMeta,
     playlists: settings.playlists,
-    currentPlaylistId: settings.currentPlaylistId,
-    currentPlaylist,
+    currentPlaylistId: settings.currentPlaylistId, // 선택된 플레이리스트 ID (기존 테스트 호환성)
+    playingPlaylistId: playingPlaylistId,           // 실제로 재생 중인 플레이리스트 ID
+    currentPlaylist: playingPlaylist,
     currentTrack,
-    currentTrackIndex,
+    currentTrackIndex: playingTrackIndex,
     isPlaying,
     progress,
     volume: settings.volume,
     autoplay: settings.autoplay,
+    loopAll: settings.loopAll,
     addTrack,
     removeTrack,
     createPlaylist,
@@ -437,6 +522,7 @@ export function useBgMusic() {
     addTrackToPlaylist,
     removeTrackFromPlaylist,
     reorderTrack,
+    setPlaylistTracks,
     play,
     togglePlay,
     next,

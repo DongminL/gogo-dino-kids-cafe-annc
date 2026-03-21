@@ -4,8 +4,6 @@ import type { AnnouncementDef } from "../../types/announcement";
 import type { Schedule } from "../../types/schedule";
 import { getScheduleLabel } from "../../utils";
 import { AudioControls } from "../AudioControls/AudioControls";
-import { ScheduleSettings } from "../ScheduleSettings/ScheduleSettings";
-
 interface AnnouncementCardProps {
   ann: AnnouncementDef;
   schedule: Schedule;
@@ -16,7 +14,6 @@ interface AnnouncementCardProps {
   onStop: () => void;
   onSeek: (time: number) => void;
   onToggleSettings: () => void;
-  onScheduleChange: (update: Partial<Schedule>) => void;
 }
 
 export function AnnouncementCard({
@@ -29,9 +26,8 @@ export function AnnouncementCard({
   onStop,
   onSeek,
   onToggleSettings,
-  onScheduleChange,
 }: AnnouncementCardProps): React.ReactNode {
-  const isScheduleActive = schedule.enabled && schedule.type !== "none";
+  const isScheduleActive = schedule.enabled;
 
   return (
     <div className={`announcement-card${isPlaying ? " playing" : ""}`}>
@@ -71,10 +67,6 @@ export function AnnouncementCard({
           </button>
         )}
       </div>
-
-      {isSettingsOpen && (
-        <ScheduleSettings schedule={schedule} onChange={onScheduleChange} />
-      )}
     </div>
   );
 }

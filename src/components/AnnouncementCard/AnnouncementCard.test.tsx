@@ -27,7 +27,6 @@ function renderCard(overrides: Partial<Parameters<typeof AnnouncementCard>[0]> =
     onStop: jest.fn(),
     onSeek: jest.fn(),
     onToggleSettings: jest.fn(),
-    onScheduleChange: jest.fn(),
     ...overrides,
   };
   return { ...render(<AnnouncementCard {...props} />), props };
@@ -79,15 +78,6 @@ describe("AnnouncementCard", () => {
     expect(props.onToggleSettings).toHaveBeenCalledTimes(1);
   });
 
-  it("isSettingsOpen=true이면 설정 패널을 표시한다", () => {
-    renderCard({ isSettingsOpen: true });
-    expect(screen.getByText("자동 재생")).toBeInTheDocument();
-  });
-
-  it("isSettingsOpen=false이면 설정 패널을 숨긴다", () => {
-    renderCard({ isSettingsOpen: false });
-    expect(screen.queryByText("자동 재생")).not.toBeInTheDocument();
-  });
 
   it("활성 스케줄이면 schedule-badge에 active 클래스를 부여한다", () => {
     renderCard();
