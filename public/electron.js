@@ -1,6 +1,12 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 
+// 단일 인스턴스 잠금: 두 번째 실행 시 첫 번째 창을 앞으로 가져오고 종료
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+}
+
 let win;
 let tray;
 
@@ -66,6 +72,14 @@ function createTray() {
     }
   });
 }
+
+// 두 번째 인스턴스 실행 시 첫 번째 인스턴스의 창을 앞으로 가져옴
+app.on('second-instance', () => {
+  if (win) {
+    if (!win.isVisible()) win.show();
+    win.focus();
+  }
+});
 
 app.whenReady().then(() => {
   createWindow();
