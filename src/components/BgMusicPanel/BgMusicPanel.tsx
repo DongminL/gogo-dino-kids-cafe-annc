@@ -1,40 +1,29 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { GripVertical, Trash2, Edit2, Check, X } from "lucide-react";
 import "./BgMusicPanel.scss";
 import type { Track, Playlist } from "../../types/bgMusic";
-
-function formatTime(sec: number): string {
-  if (!isFinite(sec) || isNaN(sec)) return "0:00";
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
 
 interface BgMusicPanelProps {
   tracks: Track[];
   playlists: Playlist[];
   currentPlaylistId: string | null;
   currentPlaylist: Playlist | null;
-  currentTrack: Track | null;
+  playingPlaylistId?: string | null;
   currentTrackIndex: number;
   isPlaying: boolean;
-  progress: { current: number; duration: number };
-  volume: number;
   autoplay: boolean;
+  loopAll: boolean;
   onAddTrack: (file: File) => Promise<void>;
   onRemoveTrack: (trackId: string) => Promise<void>;
   onCreatePlaylist: (name: string) => void;
   onDeletePlaylist: (id: string) => void;
   onSetCurrentPlaylist: (id: string | null) => void;
-  onSetLoop: (playlistId: string, loop: boolean) => void;
+  onSetLoop: (playlistId: string | null, loop: boolean) => void;
   onAddToPlaylist: (playlistId: string, trackId: string) => void;
-  onRemoveFromPlaylist: (playlistId: string, trackId: string) => void;
-  onReorderTrack: (playlistId: string, fromIndex: number, toIndex: number) => void;
+  onRemoveFromPlaylist: (playlistId: string, index: number) => void;
+  onReorderTrack: (playlistId: string | null, fromIndex: number, toIndex: number) => void;
+  onSetPlaylistTracks: (playlistId: string | null, trackIds: string[]) => void;
   onPlay: (index: number) => void;
-  onTogglePlay: () => void;
-  onNext: () => void;
-  onPrev: () => void;
-  onSeek: (time: number) => void;
-  onSetVolume: (v: number) => void;
   onSetAutoplay: (v: boolean) => void;
 }
 
@@ -43,12 +32,11 @@ export function BgMusicPanel({
   playlists,
   currentPlaylistId,
   currentPlaylist,
-  currentTrack,
+  playingPlaylistId,
   currentTrackIndex,
   isPlaying,
-  progress,
-  volume,
   autoplay,
+  loopAll,
   onAddTrack,
   onRemoveTrack,
   onCreatePlaylist,
@@ -58,12 +46,8 @@ export function BgMusicPanel({
   onAddToPlaylist,
   onRemoveFromPlaylist,
   onReorderTrack,
+  onSetPlaylistTracks,
   onPlay,
-  onTogglePlay,
-  onNext,
-  onPrev,
-  onSeek,
-  onSetVolume,
   onSetAutoplay,
 }: BgMusicPanelProps): React.ReactNode {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +55,56 @@ export function BgMusicPanel({
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
-  const [selectedLibraryTrackId, setSelectedLibraryTrackId] = useState("");
+  const [showPlaylistMenu, setShowPlaylistMenu] = useState<string | null>(null);
+
+  // Edit Mode State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingTrackIds, setEditingTrackIds] = useState<string[]>([]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const editAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isEditing) {
+      if (currentPlaylist) {
+        setEditingTrackIds(currentPlaylist.trackIds);
+      } else {
+        setEditingTrackIds(tracks.map(t => t.id));
+      }
+    }
+  }, [isEditing, currentPlaylist, tracks]);
+
+  useEffect(() => {
+    if (!showPlaylistMenu) return;
+    const closeMenu = () => setShowPlaylistMenu(null);
+    window.addEventListener("click", closeMenu);
+    return () => window.removeEventListener("click", closeMenu);
+  }, [showPlaylistMenu]);
+
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      // If clicking inside the edit area, or on the modal, don't cancel
+      const target = e.target as HTMLElement;
+      const isInside = editAreaRef.current?.contains(target);
+      const isModal = target.closest(".bg-music-confirm-modal");
+      if (!isInside && !isModal) {
+        setIsEditing(false);
+        setDraggedIndex(null);
+      }
+    };
+
+    // Use setTimeout to avoid immediate cancellation when clicking the 'Edit' button
+    const timeout = setTimeout(() => {
+      window.addEventListener("mousedown", handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isEditing]);
+
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -102,283 +135,429 @@ export function BgMusicPanel({
     setShowNewPlaylistInput(false);
   };
 
-  const playlistTracks: Array<{ trackId: string; track: Track | undefined; index: number }> =
-    (currentPlaylist?.trackIds ?? []).map((trackId, index) => ({
-      trackId,
-      track: tracks.find((t) => t.id === trackId),
-      index,
-    }));
+  type DeletionTarget = 
+    | { type: "playlist"; playlistId: string; name: string }
+    | { type: "track"; trackId: string; name: string }
+    | { type: "rfp"; playlistId: string; trackId: string; index: number; name: string }
+    | { type: "edit-rfp"; index: number; name: string };
 
-  const playlistTrackIdSet = new Set(currentPlaylist?.trackIds ?? []);
-  const libraryOnlyTracks = tracks.filter((t) => !playlistTrackIdSet.has(t.id));
+  const [confirmDelete, setConfirmDelete] = useState<DeletionTarget | null>(null);
+
+  const confirmTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerConfirm = (target: DeletionTarget) => {
+    if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current);
+    
+    // If clicking same thing, toggle off
+    if (confirmDelete && confirmDelete.type === target.type) {
+      let isSame = false;
+      if (target.type === "playlist" && confirmDelete.type === "playlist") {
+        isSame = target.playlistId === confirmDelete.playlistId;
+      } else if (target.type === "track" && confirmDelete.type === "track") {
+        isSame = target.trackId === confirmDelete.trackId;
+      } else if (target.type === "rfp" && confirmDelete.type === "rfp") {
+        isSame = target.playlistId === confirmDelete.playlistId && target.index === confirmDelete.index;
+      } else if (target.type === "edit-rfp" && confirmDelete.type === "edit-rfp") {
+        isSame = target.index === confirmDelete.index;
+      }
+      
+      if (isSame) {
+        setConfirmDelete(null);
+        return;
+      }
+    }
+    
+    setConfirmDelete(target);
+    confirmTimerRef.current = setTimeout(() => {
+      setConfirmDelete(null);
+      confirmTimerRef.current = null;
+    }, 5000);
+  };
+
+  const actualDeleteTrack = async (id: string) => {
+    await onRemoveTrack(id);
+    setConfirmDelete(null);
+  };
+
+  const actualDeletePlaylist = (id: string) => {
+    onDeletePlaylist(id);
+    setConfirmDelete(null);
+  };
+
+  const actualRemoveFromPlaylist = (playlistId: string, index: number) => {
+    onRemoveFromPlaylist(playlistId, index);
+    setConfirmDelete(null);
+  };
+
+  const actualRemoveFromEditList = (index: number) => {
+    setEditingTrackIds((prev) => {
+      const copy = [...prev];
+      copy.splice(index, 1);
+      return copy;
+    });
+    setConfirmDelete(null);
+  };
+
+  const handleStartEditing = () => {
+    setEditingTrackIds(currentPlaylist ? currentPlaylist.trackIds : tracks.map(t => t.id));
+    setIsEditing(true);
+  };
+
+  const handleFinishEditing = () => {
+    onSetPlaylistTracks(currentPlaylist ? currentPlaylist.id : null, editingTrackIds);
+    setIsEditing(false);
+    setDraggedIndex(null);
+  };
+
+  const handleCancelEditing = () => {
+    setIsEditing(false);
+    setDraggedIndex(null);
+  };
+
+  const handleRemoveTrackWhileEditing = (index: number) => {
+    const trackId = editingTrackIds[index];
+    const track = tracks.find(t => t.id === trackId);
+    triggerConfirm({ type: "edit-rfp", index, name: track?.name ?? trackId });
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    // Firefox requires some data to start drag
+    e.dataTransfer.setData("text/plain", `${index}`);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newTrackIds = [...editingTrackIds];
+    const [moved] = newTrackIds.splice(draggedIndex, 1);
+    newTrackIds.splice(index, 0, moved);
+
+    setEditingTrackIds(newTrackIds);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const tracksToDisplay: Array<{ trackId: string; track: Track | undefined; index: number }> = 
+    isEditing 
+      ? editingTrackIds.map((id, i) => ({ trackId: id, track: tracks.find(t => t.id === id), index: i }))
+      : (currentPlaylist
+          ? (currentPlaylist.trackIds ?? []).map((id, i) => ({ trackId: id, track: tracks.find(t => t.id === id), index: i }))
+          : tracks.map((t, i) => ({ trackId: t.id, track: t, index: i })));
 
   return (
     <section className="bg-music-panel">
-      {/* Playlist bar */}
-      <div className="bg-music-playlist-bar">
-        <div className="bg-music-playlist-bar__left">
-          <span className="bg-music-label">플레이리스트</span>
-          <select
-            className="bg-music-select"
-            value={currentPlaylistId ?? ""}
-            onChange={(e) => onSetCurrentPlaylist(e.target.value || null)}
-          >
-            {playlists.length === 0 && <option value="">— 없음 —</option>}
-            {playlists.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+      <div className="bg-music-layout">
+        {/* Left Side: Management (Playlists) */}
+        <div className="bg-music-sidebar-content">
+          <div className="bg-music-section">
+            <div className="bg-music-section-header">
+              <h3>플레이리스트</h3>
+            </div>
 
-          {showNewPlaylistInput ? (
-            <div className="bg-music-new-playlist">
-              <input
-                className="bg-music-input"
-                type="text"
-                placeholder="플레이리스트 이름"
-                value={newPlaylistName}
-                onChange={(e) => setNewPlaylistName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCreatePlaylist();
-                  if (e.key === "Escape") {
-                    setShowNewPlaylistInput(false);
-                    setNewPlaylistName("");
+            <div className="bg-music-add-playlist-area">
+              {showNewPlaylistInput ? (
+                <div className="bg-music-add-form animate-in">
+                  <input
+                    className="bg-music-input-field"
+                    type="text"
+                    placeholder="플레이리스트 이름 입력"
+                    value={newPlaylistName}
+                    onChange={(e) => setNewPlaylistName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCreatePlaylist();
+                      if (e.key === "Escape") {
+                        setShowNewPlaylistInput(false);
+                        setNewPlaylistName("");
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <div className="bg-music-add-form-footer">
+                    <button 
+                      className="bg-music-btn bg-music-btn--primary bg-music-btn--sm"
+                      onClick={handleCreatePlaylist}
+                    >
+                      확인
+                    </button>
+                    <button 
+                      className="bg-music-btn bg-music-btn--ghost bg-music-btn--sm"
+                      onClick={() => { setShowNewPlaylistInput(false); setNewPlaylistName(""); }}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="bg-music-playlist-add-trigger"
+                  onClick={() => setShowNewPlaylistInput(true)}
+                >
+                  <span className="icon">+</span>
+                  <span>새 플레이리스트</span>
+                </button>
+              )}
+            </div>
+
+            <div className="bg-music-playlist-list">
+              <div 
+                className={`bg-music-playlist-item ${currentPlaylistId === null ? 'active' : ''}`}
+                onClick={() => onSetCurrentPlaylist(null)}
+              >
+                <span className="name">전체 음악 목록</span>
+                <span className="count">{tracks.length}곡</span>
+              </div>
+              <div className="bg-music-playlist-divider" />
+              {playlists.length === 0 ? (
+                <div className="bg-music-empty-small">플레이리스트가 없습니다</div>
+              ) : (
+                playlists.map(p => {
+                  return (
+                    <div 
+                      key={p.id} 
+                      className={`bg-music-playlist-item ${currentPlaylistId === p.id ? 'active' : ''} ${confirmDelete?.type === 'playlist' && confirmDelete.playlistId === p.id ? 'confirm-delete' : ''}`}
+                      onClick={() => onSetCurrentPlaylist(p.id)}
+                    >
+                      <span className="name">{p.name}</span>
+                      <span className="count">{p.trackIds.length}곡</span>
+                      <button 
+                        className="delete-btn"
+                        title="목록 삭제"
+                        onClick={(e) => { e.stopPropagation(); triggerConfirm({ type: "playlist", playlistId: p.id, name: p.name }); }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Detail Tracks */}
+        <div className="bg-music-main-content" ref={editAreaRef}>
+          <div className="bg-music-section bg-music-section--full">
+            <div className="bg-music-section-header">
+              <h3>{currentPlaylist ? `${currentPlaylist.name} 트랙` : "배경 음악 목록"}</h3>
+              
+              <div className="header-actions">
+
+                {!isEditing && (
+                  <button 
+                    className="bg-music-btn bg-music-btn--ghost bg-music-btn--sm"
+                    style={{ marginRight: '8px' }}
+                    onClick={handleStartEditing}
+                  >
+                    <Edit2 size={14} style={{ marginRight: '4px' }} />
+                    편집
+                  </button>
+                )}
+
+                {isEditing && (
+                  <div style={{ display: 'flex', gap: '8px', marginRight: '16px' }}>
+                    <button 
+                      className="bg-music-btn bg-music-btn--primary bg-music-btn--sm"
+                      onClick={handleFinishEditing}
+                    >
+                      <Check size={14} style={{ marginRight: '4px' }} />
+                      완료
+                    </button>
+                    <button 
+                      className="bg-music-btn bg-music-btn--ghost bg-music-btn--sm"
+                      onClick={handleCancelEditing}
+                    >
+                      <X size={14} style={{ marginRight: '4px' }} />
+                      취소
+                    </button>
+                  </div>
+                )}
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  multiple
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+                {!isEditing && (
+                  <button
+                    className="bg-music-btn bg-music-btn--primary bg-music-btn--sm"
+                    disabled={isAdding}
+                    onClick={() => { setAddError(null); fileInputRef.current?.click(); }}
+                  >
+                    {isAdding ? "추가 중…" : "+ 배경 음악 파일 추가"}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {addError && <div className="bg-music-add-error" style={{ marginBottom: '12px' }}>{addError}</div>}
+
+            <div className="bg-music-track-list">
+              {tracksToDisplay.length === 0 ? (
+                <div className="bg-music-empty">
+                  {currentPlaylist ? "이 플레이리스트에는 곡이 없습니다." : "등록된 곡이 없습니다."}<br/>
+                  파일 추가 버튼을 눌러 음악을 업로드하세요.
+                </div>
+              ) : (
+                tracksToDisplay.map(({ trackId, track, index }) => {
+                  const isConfirmingLibrary = confirmDelete?.type === 'track' && confirmDelete.trackId === trackId;
+                  const isConfirmingRfp = confirmDelete?.type === 'rfp' && confirmDelete.playlistId === currentPlaylist?.id && confirmDelete.index === index;
+                  const isConfirmingEdit = confirmDelete?.type === 'edit-rfp' && confirmDelete.index === index;
+                  const isAnyConfirming = isConfirmingLibrary || isConfirmingRfp || isConfirmingEdit;
+                  
+                  const isTrackPlaying = index === currentTrackIndex && isPlaying && (currentPlaylist ? currentPlaylist.id === playingPlaylistId : playingPlaylistId === null);
+                  
+                  return (
+                    <div
+                      key={currentPlaylist ? `track-p-${currentPlaylist.id}-${trackId}-${index}` : `track-lib-${trackId}`}
+                      className={`bg-music-track-item${isTrackPlaying ? " bg-music-track-item--playing" : ""}${isAnyConfirming ? " bg-music-track-item--confirming" : ""}${showPlaylistMenu === trackId ? " bg-music-track-item--menu-open" : ""}${isEditing ? " bg-music-track-item--editing" : ""}${isEditing && draggedIndex === index ? " bg-music-track-item--dragged" : ""}`}
+                      onDoubleClick={() => !isAnyConfirming && !isEditing && onPlay(index)}
+                      draggable={isEditing}
+                      onDragStart={isEditing ? (e) => handleDragStart(e, index) : undefined}
+                      onDragOver={isEditing ? (e) => handleDragOver(e, index) : undefined}
+                      onDragEnd={isEditing ? handleDragEnd : undefined}
+                    >
+                    {isEditing ? (
+                      <div className="bg-music-track-item__handle">
+                        <GripVertical size={16} />
+                      </div>
+                    ) : (
+                      <span className="bg-music-track-item__num">{index + 1}</span>
+                    )}
+                    <span className="bg-music-track-item__name">{track?.name ?? trackId}</span>
+                    
+                    <div className="bg-music-track-item__actions">
+                      {isEditing ? (
+                        <button 
+                          className="bg-music-btn bg-music-btn--icon bg-music-btn--sm bg-music-btn--danger-text"
+                          title="삭제"
+                          onClick={() => handleRemoveTrackWhileEditing(index)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      ) : (
+                        <>
+                          {currentPlaylist ? (
+                            <button
+                              className="bg-music-btn bg-music-btn--icon bg-music-btn--sm"
+                              title="플레이리스트에서 제거"
+                              onClick={() => triggerConfirm({ 
+                                type: "rfp", 
+                                playlistId: currentPlaylist.id, 
+                                trackId: trackId, 
+                                index, 
+                                name: track?.name ?? trackId 
+                              })}
+                            >
+                              ✕
+                            </button>
+                          ) : (
+                            <>
+                              <div className="bg-music-add-to-playlist-container">
+                                <button 
+                                  className={`bg-music-btn bg-music-btn--icon bg-music-btn--sm ${showPlaylistMenu === trackId ? 'active' : ''}`}
+                                  title="플레이리스트에 추가"
+                                  onClick={(e) => { e.stopPropagation(); setShowPlaylistMenu(showPlaylistMenu === trackId ? null : trackId); }}
+                                >
+                                  +
+                                </button>
+                                {showPlaylistMenu === trackId && (
+                                  <div className="bg-music-playlist-menu" onClick={(e) => e.stopPropagation()}>
+                                    <div className="menu-header">추가할 플레이리스트 선택</div>
+                                    {playlists.length === 0 ? (
+                                      <div className="menu-item disabled">플레이리스트가 없습니다</div>
+                                    ) : (
+                                      playlists.map(p => (
+                                        <button 
+                                          key={p.id} 
+                                          className="menu-item"
+                                          onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            onAddToPlaylist(p.id, trackId); 
+                                            setShowPlaylistMenu(null); 
+                                          }}
+                                        >
+                                          {p.name}
+                                        </button>
+                                      ))
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              <button 
+                                className="bg-music-btn bg-music-btn--icon bg-music-btn--sm bg-music-btn--danger"
+                                title="파일 삭제"
+                                onClick={() => triggerConfirm({ type: "track", trackId: trackId, name: track?.name ?? trackId })}
+                              >
+                                🗑
+                              </button>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+
+      {/* Confirmation Modal */}
+      {confirmDelete && (
+        <div className="bg-music-confirm-modal" onClick={() => setConfirmDelete(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>알림</h3>
+            </div>
+            <div className="modal-divider" />
+            <div className="modal-body">
+              {confirmDelete.type === "playlist" ? (
+                <>플레이리스트 <strong>"{confirmDelete.name}"</strong>를 삭제하시겠습니까?</>
+              ) : confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? (
+                <>곡 <strong>"{confirmDelete.name}"</strong>을(를) 플레이리스트에서 제거하시겠습니까?</>
+              ) : (
+                <>배경 음악 파일 <strong>"{confirmDelete.name}"</strong>을(를) 영구적으로 삭제하시겠습니까?</>
+              )}
+            </div>
+            <div className="modal-divider" />
+            <div className="modal-footer">
+              <button 
+                className="bg-music-btn bg-music-btn--danger-filled"
+                onClick={() => {
+                  if (confirmDelete.type === "playlist") {
+                    actualDeletePlaylist(confirmDelete.playlistId);
+                  } else if (confirmDelete.type === "edit-rfp") {
+                    actualRemoveFromEditList(confirmDelete.index);
+                  } else if (confirmDelete.type === "rfp") {
+                    actualRemoveFromPlaylist(confirmDelete.playlistId, confirmDelete.index);
+                  } else {
+                    actualDeleteTrack(confirmDelete.trackId);
                   }
                 }}
-                autoFocus
-              />
-              <button className="bg-music-btn bg-music-btn--primary" onClick={handleCreatePlaylist}>
-                만들기
+              >
+                {confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? "제거" : "삭제"}
               </button>
-              <button
+              <button 
                 className="bg-music-btn"
-                onClick={() => {
-                  setShowNewPlaylistInput(false);
-                  setNewPlaylistName("");
-                }}
+                onClick={() => setConfirmDelete(null)}
               >
                 취소
               </button>
             </div>
-          ) : (
-            <button
-              className="bg-music-btn bg-music-btn--icon"
-              title="새 플레이리스트"
-              onClick={() => setShowNewPlaylistInput(true)}
-            >
-              +
-            </button>
-          )}
-
-          {currentPlaylist && (
-            <button
-              className="bg-music-btn bg-music-btn--danger bg-music-btn--icon"
-              title="플레이리스트 삭제"
-              onClick={() => onDeletePlaylist(currentPlaylist.id)}
-            >
-              🗑
-            </button>
-          )}
-        </div>
-
-        <div className="bg-music-playlist-bar__right">
-          {currentPlaylist && (
-            <label className="bg-music-toggle">
-              <input
-                type="checkbox"
-                checked={currentPlaylist.loop}
-                onChange={(e) => onSetLoop(currentPlaylist.id, e.target.checked)}
-              />
-              <span>반복</span>
-            </label>
-          )}
-          <label className="bg-music-toggle">
-            <input
-              type="checkbox"
-              checked={autoplay}
-              onChange={(e) => onSetAutoplay(e.target.checked)}
-            />
-            <span>자동재생</span>
-          </label>
-        </div>
-      </div>
-
-      {/* Track list */}
-      <div className="bg-music-track-list">
-        {playlistTracks.length === 0 ? (
-          <div className="bg-music-empty">
-            {currentPlaylist
-              ? "음악을 추가하세요"
-              : "플레이리스트를 먼저 만드세요"}
-          </div>
-        ) : (
-          playlistTracks.map(({ trackId, track, index }) => (
-            <div
-              key={trackId}
-              className={`bg-music-track-item${index === currentTrackIndex && isPlaying ? " bg-music-track-item--playing" : ""}`}
-              onDoubleClick={() => onPlay(index)}
-            >
-              <span className="bg-music-track-item__num">{index + 1}</span>
-              <span className="bg-music-track-item__name">{track?.name ?? trackId}</span>
-              <div className="bg-music-track-item__actions">
-                <button
-                  className="bg-music-btn bg-music-btn--icon bg-music-btn--sm"
-                  title="위로"
-                  disabled={index === 0}
-                  onClick={() =>
-                    currentPlaylist && onReorderTrack(currentPlaylist.id, index, index - 1)
-                  }
-                >
-                  ▲
-                </button>
-                <button
-                  className="bg-music-btn bg-music-btn--icon bg-music-btn--sm"
-                  title="아래로"
-                  disabled={index === playlistTracks.length - 1}
-                  onClick={() =>
-                    currentPlaylist && onReorderTrack(currentPlaylist.id, index, index + 1)
-                  }
-                >
-                  ▼
-                </button>
-                <button
-                  className="bg-music-btn bg-music-btn--icon bg-music-btn--sm"
-                  title="플레이리스트에서 제거"
-                  onClick={() =>
-                    currentPlaylist && onRemoveFromPlaylist(currentPlaylist.id, trackId)
-                  }
-                >
-                  ✕
-                </button>
-                <button
-                  className="bg-music-btn bg-music-btn--icon bg-music-btn--sm bg-music-btn--danger"
-                  title="영구 삭제"
-                  onClick={() => onRemoveTrack(trackId)}
-                >
-                  🗑
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-
-        {currentPlaylist && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="audio/*"
-              multiple
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-            />
-            <button
-              className="bg-music-add-track-btn"
-              disabled={isAdding}
-              onClick={() => { setAddError(null); fileInputRef.current?.click(); }}
-            >
-              {isAdding ? "추가 중…" : "+ 파일에서 추가"}
-            </button>
-            {addError && (
-              <div className="bg-music-add-error">{addError}</div>
-            )}
-
-            {libraryOnlyTracks.length > 0 && (
-              <div className="bg-music-library-add">
-                <select
-                  className="bg-music-select bg-music-select--grow"
-                  value={selectedLibraryTrackId}
-                  onChange={(e) => setSelectedLibraryTrackId(e.target.value)}
-                >
-                  <option value="">라이브러리에서 추가…</option>
-                  {libraryOnlyTracks.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  className="bg-music-btn bg-music-btn--primary"
-                  disabled={!selectedLibraryTrackId}
-                  onClick={() => {
-                    if (selectedLibraryTrackId) {
-                      onAddToPlaylist(currentPlaylist.id, selectedLibraryTrackId);
-                      setSelectedLibraryTrackId("");
-                    }
-                  }}
-                >
-                  추가
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Controls */}
-      <div className="bg-music-controls">
-        <div className="bg-music-controls__transport">
-          <button
-            className="bg-music-btn bg-music-btn--transport"
-            title="이전"
-            disabled={!currentPlaylist || currentPlaylist.trackIds.length === 0}
-            onClick={onPrev}
-          >
-            ⏮
-          </button>
-          <button
-            className="bg-music-btn bg-music-btn--transport bg-music-btn--play"
-            title={isPlaying ? "일시정지" : "재생"}
-            disabled={!currentPlaylist || currentPlaylist.trackIds.length === 0}
-            onClick={onTogglePlay}
-          >
-            {isPlaying ? "⏸" : "▶"}
-          </button>
-          <button
-            className="bg-music-btn bg-music-btn--transport"
-            title="다음"
-            disabled={!currentPlaylist || currentPlaylist.trackIds.length === 0}
-            onClick={onNext}
-          >
-            ⏭
-          </button>
-        </div>
-
-        <div className="bg-music-controls__center">
-          <div className="bg-music-controls__track-name">
-            {currentTrack ? currentTrack.name : "—"}
-          </div>
-          <div className="bg-music-seek">
-            <span className="bg-music-seek__time">{formatTime(progress.current)}</span>
-            <input
-              type="range"
-              className="bg-music-seek__bar"
-              min={0}
-              max={progress.duration || 0}
-              step={0.5}
-              value={progress.current}
-              disabled={!progress.duration}
-              onChange={(e) => onSeek(Number(e.target.value))}
-            />
-            <span className="bg-music-seek__time">{formatTime(progress.duration)}</span>
           </div>
         </div>
-
-        <div className="bg-music-controls__volume">
-          <span className="bg-music-volume-label">🎵 볼륨</span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.05}
-            value={volume}
-            onChange={(e) => onSetVolume(Number(e.target.value))}
-            className="bg-music-volume-slider"
-          />
-          <span className="bg-music-volume-value">{Math.round(volume * 100)}%</span>
-        </div>
-      </div>
+      )}
     </section>
   );
 }

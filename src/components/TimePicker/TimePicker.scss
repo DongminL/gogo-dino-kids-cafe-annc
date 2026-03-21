@@ -1,0 +1,128 @@
+.shadcn-time-picker {
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0; // slate-200
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  user-select: none;
+  width: auto;
+  align-self: center;
+}
+
+.picker-container {
+  display: flex;
+  align-items: flex-end; // Align columns at bottom
+  position: relative;
+  height: 160px;
+  padding: 0 8px;
+}
+
+.picker-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
+}
+
+.column-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8; // slate-400
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.wheel-scroll-view {
+  height: 132px; // 44px * 3 visible items
+  width: 100%;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  scroll-snap-type: y mandatory;
+  position: relative;
+  z-index: 1;
+  
+  // Fade effect at top and bottom
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 35%,
+    black 65%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 35%,
+    black 65%,
+    transparent 100%
+  );
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.wheel-list {
+  padding: 44px 0; // Top/Bottom padding allows items to reach the center (44px padding = 1 item height)
+}
+
+.wheel-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #94a3b8; // slate-400
+  scroll-snap-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s, font-weight 0.2s, font-size 0.2s;
+
+  &.active {
+    color: #0f172a; // slate-900
+    font-weight: 700;
+    font-size: 1.35rem;
+  }
+
+  &:hover:not(.active) {
+    color: #475569; // slate-600
+  }
+}
+
+.picker-separator {
+  height: 132px;
+  display: flex;
+  align-items: center;
+  padding-top: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 4px;
+}
+
+.selection-highlight {
+  position: absolute;
+  bottom: 44px; // Align with center item (wheel height/2 - item height/2) -> wait, wheel is 132, center is at 44.
+  left: 0;
+  right: 0;
+  height: 44px;
+  background: rgba(241, 245, 249, 0.4); // slate-100
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 0;
+  
+  &::before, &::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    height: 1px;
+    background: #e2e8f0; // slate-200
+  }
+
+  &::before { top: 0; }
+  &::after { bottom: 0; }
+}

@@ -16,7 +16,6 @@ interface CategorySectionProps {
   onStop: () => void;
   onSeek: (time: number) => void;
   onToggleSettings: (id: string) => void;
-  onScheduleChange: (id: string, update: Partial<Schedule>) => void;
 }
 
 export function CategorySection({
@@ -30,11 +29,9 @@ export function CategorySection({
   onStop,
   onSeek,
   onToggleSettings,
-  onScheduleChange,
 }: CategorySectionProps): React.ReactNode {
   return (
     <section className="category-section">
-      <h2 className="section-title">{CATEGORY_LABELS[category]}</h2>
       <div className="announcements">
         {announcements.map((ann) => (
           <AnnouncementCard
@@ -48,7 +45,6 @@ export function CategorySection({
             onStop={onStop}
             onSeek={onSeek}
             onToggleSettings={() => onToggleSettings(ann.id)}
-            onScheduleChange={(update) => onScheduleChange(ann.id, update)}
           />
         ))}
       </div>

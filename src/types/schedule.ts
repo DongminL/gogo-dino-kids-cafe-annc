@@ -1,4 +1,4 @@
-export type ScheduleType = "none" | "once" | "odd-hour" | "even-hour" | "interval";
+export type ScheduleType = "once" | "odd-hour" | "even-hour" | "interval";
 
 export interface Schedule {
   type: ScheduleType;

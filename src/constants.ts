@@ -10,21 +10,21 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "댄스트램폴린",
     category: "attraction",
     audioFile: "dance-trampoline.mp3",
-    defaultSchedule: { type: "odd-hour", time: "00:00", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "even-hour", time: "00:58", intervalMinutes: 30, enabled: true },
   },
   {
     id: "zip-line",
     title: "짚라인",
     category: "attraction",
     audioFile: "zip-line.mp3",
-    defaultSchedule: { type: "even-hour", time: "00:00", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "odd-hour", time: "00:58", intervalMinutes: 30, enabled: true },
   },
   {
     id: "photo-time",
     title: "포토타임",
     category: "attraction",
     audioFile: "photo-time.mp3",
-    defaultSchedule: { type: "none", time: "00:00", intervalMinutes: 30, enabled: false },
+    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: false },
   },
   {
     id: "meal-order",
@@ -59,7 +59,7 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "식사 테이블 양보",
     category: "table",
     audioFile: "table-yield.mp3",
-    defaultSchedule: { type: "none", time: "00:00", intervalMinutes: 30, enabled: false },
+    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: false },
   },
 ];
 
@@ -70,7 +70,6 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 };
 
 export const SCHEDULE_TYPE_LABELS: Record<ScheduleType, string> = {
-  none: "자동 재생 없음",
   once: "특정 시각 1회",
   "odd-hour": "매 홀수 시각 정각",
   "even-hour": "매 짝수 시각 정각",

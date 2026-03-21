@@ -320,7 +320,7 @@ describe("트랙 관리", () => {
     const trackId = result.current.tracks[0].id;
 
     act(() => {
-      result.current.removeTrackFromPlaylist(playlistId, trackId);
+      result.current.removeTrackFromPlaylist(playlistId, 0);
     });
 
     expect(result.current.playlists[0].trackIds).not.toContain(trackId);
@@ -576,6 +576,68 @@ describe("루프 재생", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+describe("전체 음악 목록 재생", () => {
+  it("loopAll ON: 전체 음악 목록 재생 시 마지막 트랙 종료 후 첫 트랙으로 돌아감", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    // 1. 트랙 2개 추가 (플레이리스트 없이)
+    await act(async () => {
+      await result.current.addTrack(new File(["a"], "a.mp3"));
+      await result.current.addTrack(new File(["b"], "b.mp3"));
+    });
+
+    // 2. 전체 반복 루프 ON
+    act(() => {
+      result.current.setLoop(null, true);
+    });
+    expect(result.current.loopAll).toBe(true);
+
+    // 3. 마지막 트랙(index 1) 재생 (전체 목록)
+    act(() => {
+      result.current.setCurrentPlaylist(null);
+    });
+    await act(async () => {
+      result.current.play(1);
+    });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(result.current.playingPlaylistId).toBeNull();
+    expect(result.current.currentTrackIndex).toBe(1);
+
+    const lastAudio = mockAudioInstances[mockAudioInstances.length - 1];
+
+    // 4. onended 트리거 -> loopAll이므로 index 0으로
+    await act(async () => {
+      lastAudio.triggerEnded();
+    });
+    await waitFor(() => expect(result.current.currentTrackIndex).toBe(0));
+    expect(result.current.playingPlaylistId).toBeNull();
+  });
+
+  it("전체 음악 목록 재생 시 종료 후 다음 곡으로 자동 이동", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    await act(async () => {
+      await result.current.addTrack(new File(["a"], "a.mp3"));
+      await result.current.addTrack(new File(["b"], "b.mp3"));
+    });
+
+    // index 0 재생 (전체 목록)
+    act(() => { result.current.setCurrentPlaylist(null); });
+    await act(async () => { result.current.play(0); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    const audio = mockAudioInstances[mockAudioInstances.length - 1];
+
+    // 첫 곡 종료 -> 다음 곡(index 1)으로
+    await act(async () => {
+      audio.triggerEnded();
+    });
+    await waitFor(() => expect(result.current.currentTrackIndex).toBe(1));
+    expect(result.current.isPlaying).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 describe("볼륨 및 페이드", () => {
   it("setVolume: 볼륨 값 변경 및 재생 중인 오디오에 즉시 반영", async () => {
     const result = await setupWithOneTrack();
@@ -748,5 +810,160 @@ describe("자동 재생 (autoplay)", () => {
     renderHook(() => useBgMusic());
 
     expect(mockGetTrackBlob).not.toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("플레이리스트 전환 및 재생 유지", () => {
+  it("다른 플레이리스트를 클릭해도 현재 재생 중인 음악이 중단되지 않음", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    // 1. 플레이리스트 두 개 생성 및 곡 추가
+    act(() => {
+      result.current.createPlaylist("Playlist 1");
+    });
+    const id1 = result.current.playlists[0].id;
+    
+    act(() => {
+      result.current.createPlaylist("Playlist 2");
+    });
+    const id2 = result.current.playlists[1].id;
+
+    await act(async () => {
+      await result.current.addTrack(new File(["a"], "a.mp3"), id1);
+      await result.current.addTrack(new File(["b"], "b.mp3"), id2);
+    });
+
+    // 2. Playlist 1의 곡 재생 시작 (명시적으로 id1 선택 후 재생)
+    act(() => {
+      result.current.setCurrentPlaylist(id1);
+    });
+    await act(async () => {
+      result.current.play(0);
+    });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(result.current.playingPlaylistId).toBe(id1);
+
+    // 3. Playlist 2로 전환 (단순 클릭)
+    act(() => {
+      result.current.setCurrentPlaylist(id2);
+    });
+
+    // 4. 결과 검증
+    expect(result.current.isPlaying).toBe(true); // 재생이 중단되지 않아야 함
+    expect(result.current.currentPlaylistId).toBe(id2); // 선택(View)은 Playlist 2
+    expect(result.current.playingPlaylistId).toBe(id1); // 오디오 컨텐츠(Playing)는 여전히 Playlist 1
+    expect(result.current.currentTrack?.name).toBe("a"); // 하단 바 정보 등은 여전히 'a' 트랙
+  });
+
+  it("새로운 플레이리스트의 곡을 재생할 때만 재생 컨텍스트가 전환됨", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    act(() => {
+      result.current.createPlaylist("Playlist 1");
+      result.current.createPlaylist("Playlist 2");
+    });
+    const id1 = result.current.playlists[0].id;
+    const id2 = result.current.playlists[1].id;
+
+    await act(async () => {
+      await result.current.addTrack(new File(["a"], "a.mp3"), id1);
+      await result.current.addTrack(new File(["b"], "b.mp3"), id2);
+    });
+
+    // Playlist 1 재생 시작
+    act(() => { result.current.setCurrentPlaylist(id1); });
+    await act(async () => { result.current.play(0); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    // Playlist 2로 선택 전환
+    act(() => { result.current.setCurrentPlaylist(id2); });
+    
+    // Playlist 2의 곡 재생 시작 (이 시점에서야 컨텍스트 전환)
+    await act(async () => {
+      result.current.play(0);
+    });
+    
+    await waitFor(() => {
+      expect(result.current.playingPlaylistId).toBe(id2);
+      expect(result.current.currentTrack?.name).toBe("b");
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("전체 음악 목록 (Default Playlist)", () => {
+  it("loopAll: 전체 음악 목록 루프 설정 및 동작", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    const fileA = new File(["a"], "a.mp3");
+    const fileB = new File(["b"], "b.mp3");
+
+    await act(async () => {
+      await result.current.addTrack(fileA);
+      await result.current.addTrack(fileB);
+    });
+
+    // loopAll ON
+    act(() => {
+      result.current.setLoop(null, true);
+    });
+    expect(result.current.loopAll).toBe(true);
+
+    // 마지막 트랙 재생
+    await act(async () => { result.current.play(1); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(result.current.currentTrackIndex).toBe(1);
+
+    const audio = mockAudioInstances[mockAudioInstances.length - 1];
+    
+    // 종료 트리거 -> 첫 트랙으로
+    await act(async () => {
+      audio.triggerEnded();
+    });
+    await waitFor(() => expect(result.current.currentTrackIndex).toBe(0));
+  });
+
+  it("autoplay: 전체 음악 목록에서도 자동 재생 동작", async () => {
+    const trackId = "track-1";
+    localStorage.setItem(
+      "bg-music-settings",
+      JSON.stringify({
+        playlists: [],
+        trackMeta: [{ id: trackId, name: "트랙1" }],
+        currentPlaylistId: null,
+        currentTrackIndex: 0,
+        autoplay: true,
+        volume: 0.7,
+        loopAll: false,
+      })
+    );
+
+    const { result } = renderHook(() => useBgMusic());
+
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(mockGetTrackBlob).toHaveBeenCalledWith(trackId);
+  });
+
+  it("reorderTrack: 전체 음악 목록(trackMeta) 순서 변경", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    const fileA = new File(["a"], "a.mp3");
+    const fileB = new File(["b"], "b.mp3");
+
+    await act(async () => {
+      await result.current.addTrack(fileA);
+      await result.current.addTrack(fileB);
+    });
+
+    const [idA, idB] = result.current.tracks.map(t => t.id);
+    expect(result.current.tracks.map(t => t.id)).toEqual([idA, idB]);
+
+    // 전체 목록(null)에서 순서 변경
+    act(() => {
+      result.current.reorderTrack(null, 0, 1);
+    });
+
+    expect(result.current.tracks.map(t => t.id)).toEqual([idB, idA]);
   });
 });

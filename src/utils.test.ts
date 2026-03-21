@@ -43,15 +43,12 @@ describe("formatDuration", () => {
 });
 
 describe("getScheduleLabel", () => {
-  const base: Schedule = { type: "none", time: "00:00", intervalMinutes: 30, enabled: true };
+  const base: Schedule = { type: "once", time: "00:00", intervalMinutes: 30, enabled: true };
 
   it("enabled=false이면 '자동 재생 꺼짐' 반환", () => {
     expect(getScheduleLabel({ ...base, enabled: false, type: "once" })).toBe("자동 재생 꺼짐");
   });
 
-  it("type='none'이면 '자동 재생 꺼짐' 반환", () => {
-    expect(getScheduleLabel({ ...base, type: "none" })).toBe("자동 재생 꺼짐");
-  });
 
   it("type='once'이면 시각 포함 라벨 반환", () => {
     expect(getScheduleLabel({ ...base, type: "once", time: "18:15" })).toBe("18:15 자동 재생");

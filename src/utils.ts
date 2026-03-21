@@ -20,14 +20,18 @@ export function formatDuration(seconds: number): string {
 }
 
 export function getScheduleLabel(schedule: Schedule): string {
-  if (!schedule.enabled || schedule.type === "none") return "자동 재생 꺼짐";
+  if (!schedule.enabled) return "자동 재생 꺼짐";
   switch (schedule.type) {
     case "once":
       return `${schedule.time} 자동 재생`;
-    case "odd-hour":
-      return "홀수 시각 정각 자동 재생";
-    case "even-hour":
-      return "짝수 시각 정각 자동 재생";
+    case "odd-hour": {
+      const min = schedule.time ? schedule.time.split(":")[1] : "00";
+      return `홀수 시각 ${min === "00" ? "정각" : `${min}분`} 자동 재생`;
+    }
+    case "even-hour": {
+      const min = schedule.time ? schedule.time.split(":")[1] : "00";
+      return `짝수 시각 ${min === "00" ? "정각" : `${min}분`} 자동 재생`;
+    }
     case "interval":
       return `${schedule.intervalMinutes}분마다 자동 재생`;
     default:
@@ -39,7 +43,16 @@ export function loadSettings(): Record<string, Schedule> {
   const defaults = Object.fromEntries(ANNOUNCEMENT_DEFS.map((d) => [d.id, { ...d.defaultSchedule }]));
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) return { ...defaults, ...JSON.parse(saved) };
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Migrate "none" type to "once" (if any)
+      Object.keys(parsed).forEach(id => {
+        if (parsed[id].type === "none") {
+          parsed[id].type = ("once" as any);
+        }
+      });
+      return { ...defaults, ...parsed };
+    }
   } catch {}
   return defaults;
 }
