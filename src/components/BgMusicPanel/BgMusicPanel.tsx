@@ -70,14 +70,25 @@ export function BgMusicPanel({
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const [selectedLibraryTrackId, setSelectedLibraryTrackId] = useState("");
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setIsAdding(true);
+    setAddError(null);
     for (const file of Array.from(files)) {
-      await onAddTrack(file);
+      try {
+        await onAddTrack(file);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "QuotaExceededError") {
+          setAddError("저장 공간이 부족합니다. 불필요한 음악을 삭제한 후 다시 시도해 주세요.");
+        } else {
+          setAddError("파일 추가에 실패했습니다.");
+        }
+        break;
+      }
     }
     setIsAdding(false);
     e.target.value = "";
@@ -265,10 +276,13 @@ export function BgMusicPanel({
             <button
               className="bg-music-add-track-btn"
               disabled={isAdding}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => { setAddError(null); fileInputRef.current?.click(); }}
             >
               {isAdding ? "추가 중…" : "+ 파일에서 추가"}
             </button>
+            {addError && (
+              <div className="bg-music-add-error">{addError}</div>
+            )}
 
             {libraryOnlyTracks.length > 0 && (
               <div className="bg-music-library-add">

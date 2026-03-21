@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { Track, Playlist } from "../types/bgMusic";
-import { saveTrackBlob, getTrackBlob, deleteTrackBlob } from "../db/trackStorage";
+import { saveTrackBlob, getTrackBlob, deleteTrackBlob, requestPersistentStorage } from "../db/trackStorage";
 
 const STORAGE_KEY = "bg-music-settings";
 const FADE_DURATION_MS = 1500;
@@ -161,6 +161,11 @@ export function useBgMusic() {
     },
     [getCurrentPlaylist, stopInternal, revokeObjectUrl]
   );
+
+  // Request persistent storage on mount to prevent browser eviction of large data
+  useEffect(() => {
+    requestPersistentStorage();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Autoplay on mount
   const autoplayDoneRef = useRef(false);

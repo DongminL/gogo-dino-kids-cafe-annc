@@ -294,6 +294,15 @@
   }
 }
 
+.bg-music-add-error {
+  margin: 0 18px 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  font-size: 0.8rem;
+}
+
 // ── Controls ──────────────────────────────────────────────────────────────────
 .bg-music-controls {
   display: flex;

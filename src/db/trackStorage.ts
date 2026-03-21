@@ -2,6 +2,11 @@ const DB_NAME = "gogo-dino-bgmusic";
 const DB_VERSION = 1;
 const STORE = "tracks";
 
+export async function requestPersistentStorage(): Promise<boolean> {
+  if (!navigator.storage?.persist) return false;
+  return navigator.storage.persist();
+}
+
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
