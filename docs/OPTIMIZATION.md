@@ -227,13 +227,6 @@ ffmpeg -i meal-order.wav  -b:a 128k meal-order.mp3
 ffmpeg -i zip-line.wav    -b:a 128k zip-line.mp3
 ```
 
-변환 후 `src/App.tsx`에서 파일 확장자 변경 필요:
-```tsx
-audioFile: 'cafe-order.mp3',
-audioFile: 'meal-order.mp3',
-audioFile: 'zip-line.mp3',
-```
-
 | 파일 | WAV | MP3 128k | 절약 |
 |---|---|---|---|
 | cafe-order | 3.0MB | 0.27MB | 2.7MB |
