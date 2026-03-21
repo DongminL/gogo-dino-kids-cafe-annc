@@ -18,23 +18,65 @@ body {
   min-height: 100vh;
 }
 
+.app-tabs {
+  display: flex;
+  gap: 0;
+  background: white;
+  border-bottom: 2px solid #c8e6c9;
+  padding: 0 32px;
+}
+
+.app-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555555;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: #2e7d32;
+  }
+
+  &--active {
+    color: #2e7d32;
+    border-bottom-color: #2e7d32;
+  }
+
+  &__playing-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4caf50;
+    animation: pulse 1.2s infinite;
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
 .app-main {
   flex: 1;
   padding: 28px 32px 32px;
   display: flex;
   flex-direction: column;
   gap: 28px;
-}
-
-.app-footer {
-  text-align: center;
-  padding: 24px;
-  font-size: 0.82rem;
-  color: $text-secondary;
-  border-top: 1px solid $border;
-  background: white;
-  margin-top: auto;
-  opacity: 0.8;
-  letter-spacing: 0.5px;
-  font-weight: 500;
 }

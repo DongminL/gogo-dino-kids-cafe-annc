@@ -1,0 +1,386 @@
+@use "../../styles/variables" as *;
+
+.bg-music-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+// ── Playlist bar ─────────────────────────────────────────────────────────────
+.bg-music-playlist-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 18px;
+  background: $playing-bg;
+  border-bottom: 1px solid $border;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+}
+
+.bg-music-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: $text-secondary;
+  white-space: nowrap;
+}
+
+.bg-music-select {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  color: $text;
+  cursor: pointer;
+  max-width: 200px;
+
+  &:focus {
+    outline: 2px solid $primary-light;
+    border-color: $primary-light;
+  }
+}
+
+.bg-music-new-playlist {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bg-music-input {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: $text;
+  width: 160px;
+
+  &:focus {
+    outline: 2px solid $primary-light;
+    border-color: $primary-light;
+  }
+}
+
+.bg-music-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: $text-secondary;
+  font-weight: 600;
+  user-select: none;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: $primary;
+    cursor: pointer;
+  }
+}
+
+// ── Buttons ──────────────────────────────────────────────────────────────────
+.bg-music-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid $border;
+  border-radius: 6px;
+  background: white;
+  color: $text;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: $playing-bg;
+    border-color: $primary-light;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &--primary {
+    background: $primary;
+    color: white;
+    border-color: $primary;
+
+    &:hover:not(:disabled) {
+      background: $primary-light;
+      border-color: $primary-light;
+    }
+  }
+
+  &--danger {
+    color: #c62828;
+    border-color: #ffcdd2;
+
+    &:hover:not(:disabled) {
+      background: #ffebee;
+      border-color: #ef9a9a;
+    }
+  }
+
+  &--icon {
+    padding: 0 10px;
+    font-size: 0.95rem;
+  }
+
+  &--sm {
+    height: 26px;
+    padding: 0 8px;
+    font-size: 0.75rem;
+  }
+
+  &--transport {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 1.1rem;
+    border-radius: 50%;
+    border-color: $border;
+  }
+
+  &--play {
+    width: 48px;
+    height: 48px;
+    font-size: 1.3rem;
+    background: $primary;
+    color: white;
+    border-color: $primary;
+
+    &:hover:not(:disabled) {
+      background: $primary-light;
+      border-color: $primary-light;
+    }
+  }
+}
+
+// ── Track list ────────────────────────────────────────────────────────────────
+.bg-music-track-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 80px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.bg-music-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  color: $text-secondary;
+  font-size: 0.88rem;
+}
+
+.bg-music-track-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  transition: background 0.1s;
+  cursor: default;
+
+  &:hover {
+    background: $playing-bg;
+  }
+
+  &--playing {
+    background: $playing-bg;
+
+    .bg-music-track-item__num {
+      color: $primary;
+      font-weight: 700;
+    }
+
+    .bg-music-track-item__name {
+      color: $primary;
+      font-weight: 600;
+    }
+  }
+
+  &__num {
+    min-width: 24px;
+    font-size: 0.78rem;
+    color: $text-secondary;
+    text-align: right;
+  }
+
+  &__name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: $text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover &__actions {
+    opacity: 1;
+  }
+}
+
+.bg-music-library-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 18px 6px;
+}
+
+.bg-music-select--grow {
+  flex: 1;
+  max-width: none;
+}
+
+.bg-music-add-track-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 6px 18px;
+  padding: 8px;
+  border: 1px dashed $border;
+  border-radius: 6px;
+  background: transparent;
+  color: $text-secondary;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: $playing-bg;
+    border-color: $primary-light;
+    color: $primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+.bg-music-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 18px;
+  border-top: 1px solid $border;
+  background: $settings-bg;
+
+  &__transport {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  &__track-name {
+    font-size: 0.88rem;
+    color: $text-secondary;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-style: italic;
+  }
+
+  &__volume {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+}
+
+.bg-music-seek {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &__bar {
+    flex: 1;
+    accent-color: $primary;
+    cursor: pointer;
+    height: 4px;
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+  }
+
+  &__time {
+    font-size: 0.75rem;
+    color: $text-secondary;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    min-width: 30px;
+
+    &:last-child {
+      text-align: right;
+    }
+  }
+}
+
+.bg-music-volume-label {
+  font-size: 0.82rem;
+  color: $text-secondary;
+  white-space: nowrap;
+}
+
+.bg-music-volume-slider {
+  width: 100px;
+  accent-color: $primary;
+  cursor: pointer;
+}
+
+.bg-music-volume-value {
+  font-size: 0.82rem;
+  color: $text-secondary;
+  min-width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
