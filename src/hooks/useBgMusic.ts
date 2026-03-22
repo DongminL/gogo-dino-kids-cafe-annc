@@ -204,6 +204,17 @@ export function useBgMusic() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Watchdog: 재생 중인데 오디오가 예기치 않게 멈춘 경우 자동으로 재개
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      if (audioRef.current && audioRef.current.paused) {
+        audioRef.current.play().catch(() => {});
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
