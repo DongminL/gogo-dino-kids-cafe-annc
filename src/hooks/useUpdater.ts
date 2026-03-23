@@ -79,8 +79,13 @@ export function useUpdater(): UseUpdaterResult {
     });
 
     api.onUpdateError((error) => {
-      setErrorMessage(error);
-      setStatus('error');
+      setStatus((prev) => {
+        if (prev === 'downloading') {
+          setErrorMessage(error);
+          return 'error';
+        }
+        return 'idle';
+      });
     });
 
     return () => {
