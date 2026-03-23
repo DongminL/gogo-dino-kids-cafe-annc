@@ -8,6 +8,7 @@
     "build": "vite build",
     "electron": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "dist": "vite build && electron-builder --win",
+    "dist:publish": "vite build && electron-builder --win --publish always",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -18,13 +19,20 @@
       "build/**/*",
       "!build/**/*.map",
       "public/electron.js",
+      "public/preload.js",
       "public/logo.png"
     ],
     "compression": "maximum",
     "asar": true,
+    "publish": {
+      "provider": "github",
+      "owner": "DongminL",
+      "repo": "gogo-dino-kids-cafe-annc"
+    },
     "win": {
       "target": "nsis",
-      "icon": "public/logo.png"
+      "icon": "public/logo.png",
+      "artifactName": "gogo-dino-annc-setup-${version}.exe"
     },
     "nsis": {
       "oneClick": false,
@@ -58,6 +66,7 @@
     "wait-on": "^9.0.4"
   },
   "dependencies": {
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.3"
   }
 }
