@@ -149,13 +149,6 @@ function setupAutoUpdater() {
   if (app.isPackaged) {
     setTimeout(() => autoUpdater.checkForUpdates(), 3000);
   }
-
-  if (!app.isPackaged) {
-    setTimeout(() => {
-      win.webContents.send('update-available', { version: '0.2.0' });
-    }, 3000);
-  }
-
 }
 
 // 두 번째 인스턴스 실행 시 첫 번째 인스턴스의 창을 앞으로 가져옴
