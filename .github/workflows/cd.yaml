@@ -11,12 +11,7 @@ permissions:
 
 jobs:
   release:
-    if: |
-      github.event.pull_request.merged == true &&
-      (
-        startsWith(github.event.pull_request.head.ref, 'release/') ||
-        startsWith(github.event.pull_request.head.ref, 'hotfix/')
-      )
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: windows-latest
 
     steps:
@@ -47,8 +42,6 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          files: |
-            dist/*.exe
-            dist/*.exe.blockmap
-            dist/latest.yml
+          files: dist/*.exe
           generate_release_notes: true
+          prerelease: true
