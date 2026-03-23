@@ -12,7 +12,7 @@
 electron-builder의 NSIS 인스톨러는 업데이트 시 다음 순서로 동작한다.
 
 1. 새 버전 인스톨러 실행
-2. 기존 버전이 감지되면 **기존 uninstaller를 `/S` (silent) 플래그 없이 실행**하여 이전 버전 제거
+2. 기존 버전이 감지되면 **기존 uninstaller를 `/S` (silent) 플래그로 실행**하여 이전 버전 제거
 3. 새 버전 설치
 
 이 과정에서 `customUnInstall` 매크로가 호출된다.
