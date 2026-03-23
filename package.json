@@ -39,7 +39,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "include": "installer/installer.nsh"
+      "include": "installer/uninstaller.nsh"
     }
   },
   "devDependencies": {
