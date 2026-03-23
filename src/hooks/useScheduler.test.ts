@@ -1,16 +1,12 @@
 import { shouldFire } from "./useScheduler";
 import type { Schedule } from "../types/schedule";
 
-const base: Schedule = { type: "none", time: "00:00", intervalMinutes: 30, enabled: true };
+const base: Schedule = { type: "once", time: "00:00", intervalMinutes: 30, enabled: true };
 
 describe("shouldFire", () => {
-  describe("enabled=false 또는 type=none이면 항상 false", () => {
+  describe("enabled=false이면 항상 false", () => {
     it("enabled=false", () => {
       expect(shouldFire({ ...base, enabled: false, type: "once", time: "10:00" }, 10, 0)).toBe(false);
-    });
-
-    it("type=none", () => {
-      expect(shouldFire({ ...base, type: "none" }, 10, 0)).toBe(false);
     });
   });
 

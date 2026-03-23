@@ -666,10 +666,7 @@ describe("볼륨 및 페이드", () => {
 
     act(() => {
       result.current.fadeOut();
-    });
-
-    act(() => {
-      jest.runAllTimers();
+      jest.advanceTimersByTime(2000);
     });
 
     expect(audio.volume).toBe(0);
@@ -692,14 +689,14 @@ describe("볼륨 및 페이드", () => {
     // fadeOut 완료
     act(() => {
       result.current.fadeOut();
-      jest.runAllTimers();
+      jest.advanceTimersByTime(2000);
     });
     expect(audio.volume).toBe(0);
 
     // fadeIn 복구
     act(() => {
       result.current.fadeIn();
-      jest.runAllTimers();
+      jest.advanceTimersByTime(2000);
     });
 
     expect(audio.volume).toBeCloseTo(targetVolume, 5);
