@@ -49,6 +49,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      backgroundThrottling: false,
     },
     title: '고고 다이노 안내 방송',
     icon: path.join(__dirname, 'logo.png'),
