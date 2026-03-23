@@ -11,13 +11,15 @@ import { CategorySection } from "./components/CategorySection/CategorySection";
 import { BgMusicPanel } from "./components/BgMusicPanel/BgMusicPanel";
 import { GlobalBottomBar } from "./components/GlobalBottomBar/GlobalBottomBar";
 import { ScheduleSettings } from "./components/ScheduleSettings/ScheduleSettings";
-import { 
-  Megaphone, 
-  Music, 
-  Gamepad2, 
-  LogOut, 
-  Utensils, 
-  ListMusic, 
+import { UpdateNotification } from "./components/UpdateNotification/UpdateNotification";
+import { useUpdater } from "./hooks/useUpdater";
+import {
+  Megaphone,
+  Music,
+  Gamepad2,
+  LogOut,
+  Utensils,
+  ListMusic,
   PlusCircle,
   ChevronRight,
   Disc,
@@ -33,6 +35,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<string>("all-announcements");
 
   const bgMusic = useBgMusic();
+  const updater = useUpdater();
 
   // Fade background music when announcement plays/stops
   useEffect(() => {
@@ -321,6 +324,16 @@ function App() {
           onClose={() => setOpenSettingsId(null)}
         />
       )}
+
+      <UpdateNotification
+        status={updater.status}
+        updateInfo={updater.updateInfo}
+        downloadProgress={updater.downloadProgress}
+        errorMessage={updater.errorMessage}
+        onDownload={updater.downloadUpdate}
+        onInstall={updater.installUpdate}
+        onDismiss={updater.dismiss}
+      />
     </div>
   );
 }

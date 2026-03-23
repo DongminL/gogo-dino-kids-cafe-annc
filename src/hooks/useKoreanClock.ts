@@ -4,7 +4,8 @@ import { getKoreanTime } from "../utils";
 export function useKoreanClock(): Date {
   const [currentTime, setCurrentTime] = useState<Date>(getKoreanTime);
   useEffect(() => {
-    const timer = setTimeout(() => setCurrentTime(getKoreanTime()), 1000);
+    const msUntilNextSecond = 1000 - new Date().getMilliseconds();
+    const timer = setTimeout(() => setCurrentTime(getKoreanTime()), msUntilNextSecond);
     return () => clearTimeout(timer);
   }, [currentTime]);
   return currentTime;
