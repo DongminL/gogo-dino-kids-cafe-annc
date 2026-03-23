@@ -1,6 +1,7 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, screen } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
+const { autoUpdater } = require('electron-updater');
 
 // 단일 인스턴스 잠금: 두 번째 실행 시 첫 번째 창을 앞으로 가져오고 종료
 const gotLock = app.requestSingleInstanceLock();
@@ -50,6 +51,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       backgroundThrottling: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
     title: '고고 다이노 안내 방송',
     icon: path.join(__dirname, 'logo.png'),
@@ -57,7 +59,7 @@ function createWindow() {
   });
 
   if (!app.isPackaged) {
-    win.loadURL('http://localhost:3000');
+    win.loadURL('http://localhost:5173');
   } else {
     win.loadFile(path.join(__dirname, '../build/index.html'));
   }
@@ -109,6 +111,46 @@ function createTray() {
   });
 }
 
+function setupAutoUpdater() {
+  // 사용자가 직접 다운로드 여부 선택
+  autoUpdater.autoDownload = false;
+  // 앱 종료 시 자동 설치
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', (info) => {
+    if (win) win.webContents.send('update-available', info);
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    if (win) win.webContents.send('update-not-available', info);
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    if (win) win.webContents.send('download-progress', progress);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    if (win) win.webContents.send('update-downloaded', info);
+  });
+
+  autoUpdater.on('error', (error) => {
+    if (win) win.webContents.send('update-error', error.message);
+  });
+
+  // IPC: 렌더러에서 보내는 업데이트 명령 처리
+  ipcMain.on('check-for-updates', () => autoUpdater.checkForUpdates());
+  ipcMain.on('download-update', () => autoUpdater.downloadUpdate());
+  ipcMain.on('install-update', () => {
+    saveWindowBounds();
+    autoUpdater.quitAndInstall(true, true);
+  });
+
+  // 앱 시작 3초 후 자동으로 업데이트 확인
+  if (app.isPackaged) {
+    setTimeout(() => autoUpdater.checkForUpdates(), 3000);
+  }
+}
+
 // 두 번째 인스턴스 실행 시 첫 번째 인스턴스의 창을 앞으로 가져옴
 app.on('second-instance', () => {
   if (win) {
@@ -120,6 +162,7 @@ app.on('second-instance', () => {
 app.whenReady().then(() => {
   createWindow();
   createTray();
+  setupAutoUpdater();
 });
 
 // 트레이로 실행 중이므로 모든 창이 닫혀도 앱을 종료하지 않음
