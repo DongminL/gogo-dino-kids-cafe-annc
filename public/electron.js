@@ -51,7 +51,6 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       backgroundThrottling: false,
-      preload: path.join(__dirname, 'preload.js'),
     },
     title: '고고 다이노 안내 방송',
     icon: path.join(__dirname, 'logo.png'),
