@@ -1,9 +1,9 @@
 import React from "react";
 import "./AnnouncementCard.scss";
-import type { AnnouncementDef } from "../../types/announcement";
-import type { Schedule } from "../../types/schedule";
-import { getScheduleLabel } from "../../utils";
-import { AudioControls } from "../AudioControls/AudioControls";
+import type { AnnouncementDef } from "@/features/announcement/types/announcement";
+import type { Schedule } from "@/features/announcement/types/schedule";
+import { getScheduleLabel } from "@/utils";
+import { AudioControls } from "@/components/AudioControls/AudioControls";
 interface AnnouncementCardProps {
   ann: AnnouncementDef;
   schedule: Schedule;

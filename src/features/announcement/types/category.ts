@@ -1,0 +1,1 @@
+export type Category = "attraction" | "closing" | "table";

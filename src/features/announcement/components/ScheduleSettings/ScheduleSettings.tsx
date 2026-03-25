@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./ScheduleSettings.scss";
-import type { Schedule, ScheduleType } from "../../types/schedule";
-import { TimePicker } from "../TimePicker/TimePicker";
+import type { Schedule, ScheduleType } from "@/features/announcement/types/schedule";
+import { TimePicker } from "@/components/TimePicker/TimePicker";
 
 interface ScheduleSettingsProps {
   announcementTitle: string;

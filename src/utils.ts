@@ -1,4 +1,4 @@
-import type { Schedule } from "./types/schedule";
+import type { Schedule } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS, STORAGE_KEY } from "./constants";
 
 export function getKoreanTime(): Date {
