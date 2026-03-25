@@ -41,6 +41,12 @@ const mockAnnouncement = {
   title: "테스트 안내",
   audioFile: "/audio/test.mp3",
   category: "attraction" as const,
+  defaultSchedule: {
+    type: "once" as const,
+    time: "09:00",
+    intervalMinutes: 0,
+    enabled: false,
+  },
 };
 
 beforeAll(() => {
