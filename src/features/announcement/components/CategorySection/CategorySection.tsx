@@ -1,9 +1,9 @@
 import React from "react";
 import "./CategorySection.scss";
-import type { AnnouncementDef } from "../../types/announcement";
-import type { Schedule } from "../../types/schedule";
-import { CATEGORY_LABELS } from "../../constants";
-import { AnnouncementCard } from "../AnnouncementCard/AnnouncementCard";
+import type { AnnouncementDef } from "@/features/announcement/types/announcement";
+import type { Schedule } from "@/features/announcement/types/schedule";
+import { CATEGORY_LABELS } from "@/constants";
+import { AnnouncementCard } from "@/features/announcement/components/AnnouncementCard/AnnouncementCard";
 
 interface CategorySectionProps {
   category: keyof typeof CATEGORY_LABELS;

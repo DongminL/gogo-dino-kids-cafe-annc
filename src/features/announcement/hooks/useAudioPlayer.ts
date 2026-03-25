@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import type { AnnouncementDef } from "../types/announcement";
+import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 
 interface AudioProgress {
   current: number;
