@@ -1,18 +1,18 @@
 import React, { useState, useCallback, useEffect } from "react";
 import "./App.scss";
-import type { Schedule } from "./types/schedule";
-import { ANNOUNCEMENT_DEFS, ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS, STORAGE_KEY } from "./constants";
-import { loadSettings, formatTime } from "./utils";
-import { useKoreanClock } from "./hooks/useKoreanClock";
-import { useAudioPlayer } from "./hooks/useAudioPlayer";
-import { useScheduler } from "./hooks/useScheduler";
-import { useBgMusic } from "./hooks/useBgMusic";
-import { CategorySection } from "./components/CategorySection/CategorySection";
-import { BgMusicPanel } from "./components/BgMusicPanel/BgMusicPanel";
-import { GlobalBottomBar } from "./components/GlobalBottomBar/GlobalBottomBar";
-import { ScheduleSettings } from "./components/ScheduleSettings/ScheduleSettings";
-import { UpdateNotification } from "./components/UpdateNotification/UpdateNotification";
-import { useUpdater } from "./hooks/useUpdater";
+import type { Schedule } from "@/types/schedule";
+import { ANNOUNCEMENT_DEFS, ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS, STORAGE_KEY } from "@/constants";
+import { loadSettings, formatTime } from "@/utils";
+import { useKoreanClock } from "@/hooks/useKoreanClock";
+import { useAudioPlayer } from "@/features/announcement/hooks/useAudioPlayer";
+import { useScheduler } from "@/features/announcement/hooks/useScheduler";
+import { useBgMusic } from "@/features/bg-music/hooks/useBgMusic";
+import { CategorySection } from "@/features/announcement/components/CategorySection/CategorySection";
+import { BgMusicPanel } from "@/features/bg-music/components/BgMusicPanel/BgMusicPanel";
+import { GlobalBottomBar } from "@/components/GlobalBottomBar/GlobalBottomBar";
+import { ScheduleSettings } from "@/features/announcement/components/ScheduleSettings/ScheduleSettings";
+import { UpdateNotification } from "@/components/UpdateNotification/UpdateNotification";
+import { useUpdater } from "@/hooks/useUpdater";
 import {
   Megaphone,
   Music,
