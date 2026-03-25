@@ -25,6 +25,11 @@ function copyPublicAssetsPlugin() {
 export default defineConfig({
   plugins: [react(), copyPublicAssetsPlugin()],
   base: './',
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "src"),
+    },
+  },
   build: {
     outDir: 'build',
     copyPublicDir: false,

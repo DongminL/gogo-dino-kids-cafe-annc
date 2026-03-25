@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { GripVertical, Trash2, Edit2, Check, X } from "lucide-react";
 import "./BgMusicPanel.scss";
-import type { Track, Playlist } from "../../types/bgMusic";
+import type { Track, Playlist } from "@/features/bg-music/types/bgMusic";
 
 interface BgMusicPanelProps {
   tracks: Track[];

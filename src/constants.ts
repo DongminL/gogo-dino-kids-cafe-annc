@@ -1,6 +1,6 @@
-import type { AnnouncementDef } from "./types/announcement";
-import type { Category } from "./types/category";
-import type { ScheduleType } from "./types/schedule";
+import type { AnnouncementDef } from "@/features/announcement/types/announcement";
+import type { Category } from "@/features/announcement/types/category";
+import type { ScheduleType } from "@/features/announcement/types/schedule";
 
 export const STORAGE_KEY = "annc-schedules";
 

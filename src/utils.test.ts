@@ -1,5 +1,5 @@
 import { formatTime, formatDuration, getScheduleLabel, loadSettings } from "./utils";
-import type { Schedule } from "./types/schedule";
+import type { Schedule } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS } from "./constants";
 
 describe("formatTime", () => {

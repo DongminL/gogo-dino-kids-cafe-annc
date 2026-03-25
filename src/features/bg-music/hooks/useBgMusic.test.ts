@@ -5,10 +5,10 @@ import {
   getTrackBlob,
   deleteTrackBlob,
   requestPersistentStorage,
-} from "../db/trackStorage";
+} from "@/db/trackStorage";
 
 // ─── trackStorage 모킹 ───────────────────────────────────────────────────────
-jest.mock("../db/trackStorage");
+jest.mock("@/db/trackStorage");
 
 const mockSaveTrackBlob = saveTrackBlob as jest.MockedFunction<typeof saveTrackBlob>;
 const mockGetTrackBlob = getTrackBlob as jest.MockedFunction<typeof getTrackBlob>;
