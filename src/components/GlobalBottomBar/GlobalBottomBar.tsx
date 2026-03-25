@@ -11,7 +11,7 @@ import {
   Megaphone,
   ListMusic
 } from "lucide-react";
-import type { Track } from "@/types/bgMusic";
+import type { Track } from "@/features/bg-music/types/bgMusic";
 import { formatDuration } from "../../utils";
 
 interface GlobalBottomBarProps {

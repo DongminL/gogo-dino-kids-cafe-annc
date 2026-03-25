@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import "./App.scss";
-import type { Schedule } from "@/types/schedule";
+import type { Schedule } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS, ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS, STORAGE_KEY } from "@/constants";
 import { loadSettings, formatTime } from "@/utils";
 import { useKoreanClock } from "@/hooks/useKoreanClock";
