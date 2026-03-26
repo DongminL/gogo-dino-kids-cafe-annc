@@ -54,7 +54,7 @@ Windows 환경에서 실행되는 Electron 기반 데스크톱 앱으로, 키즈
 - 앱 실행 시 배경 음악 자동 재생 설정
 - 안내 방송 재생 시 배경 음악 자동 페이드아웃 → 방송 종료 후 페이드인 복구
 
-![배경 음악](https://github.com/user-attachments/assets/04d47369-bbc8-4851-9ffa-666e1e7229ec)
+![배경 음악](https://github.com/user-attachments/assets/2ab0c39a-be49-4fd7-9e02-a05d3902559e)
 
 ### 기타
 
