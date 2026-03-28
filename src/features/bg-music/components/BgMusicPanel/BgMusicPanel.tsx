@@ -1,7 +1,17 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { GripVertical, Trash2, Edit2, Check, X } from "lucide-react";
+import { GripVertical, Trash2, Edit2, Check, X, RotateCcw } from "lucide-react";
 import "./BgMusicPanel.scss";
 import type { Track, Playlist } from "@/features/bg-music/types/bgMusic";
+
+interface UploadingItem {
+  uploadId: string;
+  fileName: string;
+  progress: number;
+  status: "uploading" | "error" | "done";
+  error: string | null;
+  file: File;
+  playlistId: string | null;
+}
 
 interface BgMusicPanelProps {
   tracks: Track[];
@@ -13,7 +23,7 @@ interface BgMusicPanelProps {
   isPlaying: boolean;
   autoplay: boolean;
   loopAll: boolean;
-  onAddTrack: (file: File) => Promise<void>;
+  onAddTrack: (file: File, onProgress?: (progress: number) => void) => Promise<void>;
   onRemoveTrack: (trackId: string) => Promise<void>;
   onCreatePlaylist: (name: string) => void;
   onDeletePlaylist: (id: string) => void;
@@ -53,8 +63,7 @@ export function BgMusicPanel({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const [addError, setAddError] = useState<string | null>(null);
+  const [uploadingItems, setUploadingItems] = useState<UploadingItem[]>([]);
   const [showPlaylistMenu, setShowPlaylistMenu] = useState<string | null>(null);
 
   // Edit Mode State
@@ -106,25 +115,57 @@ export function BgMusicPanel({
   }, [isEditing]);
 
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const startUpload = useCallback(async (file: File, playlistId: string | null) => {
+    const uploadId = `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const fileName = file.name.replace(/\.[^.]+$/, "");
+
+    setUploadingItems((prev) => [
+      ...prev,
+      { uploadId, fileName, progress: 0, status: "uploading", error: null, file, playlistId },
+    ]);
+
+    try {
+      await onAddTrack(file, (progress) => {
+        setUploadingItems((prev) =>
+          prev.map((item) => item.uploadId === uploadId ? { ...item, progress } : item)
+        );
+      });
+
+      setUploadingItems((prev) =>
+        prev.map((item) => item.uploadId === uploadId ? { ...item, progress: 100, status: "done" } : item)
+      );
+      setTimeout(() => {
+        setUploadingItems((prev) => prev.filter((item) => item.uploadId !== uploadId));
+      }, 1500);
+    } catch (err) {
+      const error =
+        err instanceof DOMException && err.name === "QuotaExceededError"
+          ? "저장 공간이 부족합니다."
+          : "파일 추가에 실패했습니다.";
+      setUploadingItems((prev) =>
+        prev.map((item) => item.uploadId === uploadId ? { ...item, status: "error", error } : item)
+      );
+    }
+  }, [onAddTrack]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    setIsAdding(true);
-    setAddError(null);
     for (const file of Array.from(files)) {
-      try {
-        await onAddTrack(file);
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "QuotaExceededError") {
-          setAddError("저장 공간이 부족합니다. 불필요한 음악을 삭제한 후 다시 시도해 주세요.");
-        } else {
-          setAddError("파일 추가에 실패했습니다.");
-        }
-        break;
-      }
+      void startUpload(file, currentPlaylistId);
     }
-    setIsAdding(false);
     e.target.value = "";
+  };
+
+  const handleRetryUpload = (uploadId: string) => {
+    const item = uploadingItems.find((i) => i.uploadId === uploadId);
+    if (!item) return;
+    setUploadingItems((prev) => prev.filter((i) => i.uploadId !== uploadId));
+    void startUpload(item.file, item.playlistId);
+  };
+
+  const handleCancelUpload = (uploadId: string) => {
+    setUploadingItems((prev) => prev.filter((i) => i.uploadId !== uploadId));
   };
 
   const handleCreatePlaylist = () => {
@@ -389,24 +430,78 @@ export function BgMusicPanel({
                 {!isEditing && (
                   <button
                     className="bg-music-btn bg-music-btn--primary bg-music-btn--sm"
-                    disabled={isAdding}
-                    onClick={() => { setAddError(null); fileInputRef.current?.click(); }}
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    {isAdding ? "추가 중…" : "+ 배경 음악 파일 추가"}
+                    + 배경 음악 파일 추가
                   </button>
                 )}
               </div>
             </div>
 
-            {addError && <div className="bg-music-add-error" style={{ marginBottom: '12px' }}>{addError}</div>}
-
             <div className="bg-music-track-list">
-              {tracksToDisplay.length === 0 ? (
-                <div className="bg-music-empty">
-                  {currentPlaylist ? "이 플레이리스트에는 곡이 없습니다." : "등록된 곡이 없습니다."}<br/>
-                  파일 추가 버튼을 눌러 음악을 업로드하세요.
-                </div>
-              ) : (
+              {(() => {
+                const visibleUploads = uploadingItems.filter((item) =>
+                  currentPlaylistId === null || item.playlistId === currentPlaylistId
+                );
+                const isEmpty = tracksToDisplay.length === 0 && visibleUploads.length === 0;
+                return (
+                  <>
+                    {isEmpty && (
+                      <div className="bg-music-empty">
+                        {currentPlaylist ? "이 플레이리스트에는 곡이 없습니다." : "등록된 곡이 없습니다."}<br/>
+                        파일 추가 버튼을 눌러 음악을 업로드하세요.
+                      </div>
+                    )}
+                    {visibleUploads.map((item) => (
+                      <div
+                        key={item.uploadId}
+                        className={`bg-music-track-item bg-music-track-item--uploading${item.status === "error" ? " bg-music-track-item--upload-error" : ""}${item.status === "done" ? " bg-music-track-item--upload-done" : ""}`}
+                      >
+                        <span className="bg-music-track-item__num">…</span>
+                        <div className="bg-music-track-item__upload-info">
+                          <div className="upload-name-row">
+                            <span className="bg-music-track-item__name">{item.fileName}</span>
+                            {item.status === "uploading" && (
+                              <span className="upload-percent">{item.progress}%</span>
+                            )}
+                            {item.status === "error" && (
+                              <span className="upload-error-label">{item.error}</span>
+                            )}
+                            {item.status === "done" && (
+                              <span className="upload-done-label">완료</span>
+                            )}
+                          </div>
+                          <div className="upload-progress-bar">
+                            <div
+                              className={`upload-progress-fill upload-progress-fill--${item.status}`}
+                              style={{ width: `${item.progress}%` }}
+                            />
+                          </div>
+                        </div>
+                        {item.status === "error" && (
+                          <div className="bg-music-track-item__actions" style={{ opacity: 1 }}>
+                            <button
+                              className="bg-music-btn bg-music-btn--icon bg-music-btn--sm"
+                              title="재시도"
+                              onClick={() => handleRetryUpload(item.uploadId)}
+                            >
+                              <RotateCcw size={14} />
+                            </button>
+                            <button
+                              className="bg-music-btn bg-music-btn--icon bg-music-btn--sm bg-music-btn--danger"
+                              title="취소"
+                              onClick={() => handleCancelUpload(item.uploadId)}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
+              {tracksToDisplay.length > 0 && (
                 tracksToDisplay.map(({ trackId, track, index }) => {
                   const isConfirmingLibrary = confirmDelete?.type === 'track' && confirmDelete.trackId === trackId;
                   const isConfirmingRfp = confirmDelete?.type === 'rfp' && confirmDelete.playlistId === currentPlaylist?.id && confirmDelete.index === index;
