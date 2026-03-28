@@ -722,6 +722,62 @@ describe("볼륨 및 페이드", () => {
       act(() => { result.current.fadeIn(); }); // isFaded=false 상태에서 호출
     }).not.toThrow();
   });
+
+  // ── 버그 수정 회귀 테스트 ────────────────────────────────────────────────────
+  // 안내 방송 재생 중(배경 음악이 없는 상태)에 fadeOut을 호출해도 isFaded 플래그가
+  // 설정되어야 하며, 이후 배경 음악이 재생될 때 볼륨 0으로 시작해야 한다.
+
+  it("안내 방송 재생 중 배경 음악 시작 시 볼륨 0으로 재생", async () => {
+    // 배경 음악 없는 상태에서 fadeOut (안내 방송 시작 시뮬레이션)
+    const result = await setupWithOneTrack();
+
+    act(() => { result.current.fadeOut(); });
+
+    // 안내 방송 재생 중에 배경 음악 재생
+    await act(async () => { result.current.play(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    expect(mockAudioInstances[mockAudioInstances.length - 1].volume).toBe(0);
+  });
+
+  it("배경 음악 없을 때 fadeOut 후 fadeIn → 이후 배경 음악 재생 시 정상 볼륨으로 시작", async () => {
+    const result = await setupWithOneTrack();
+    const targetVolume = result.current.volume;
+
+    // 배경 음악 없이 fadeOut → fadeIn (안내 방송 시작 후 종료 시뮬레이션)
+    act(() => {
+      result.current.fadeOut();
+      result.current.fadeIn();
+    });
+
+    // 안내 방송 종료 후 배경 음악 재생
+    await act(async () => { result.current.play(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    expect(mockAudioInstances[mockAudioInstances.length - 1].volume).toBe(targetVolume);
+  });
+
+  it("배경 음악 없을 때 fadeOut 중복 호출 시 두 번째는 무시됨", async () => {
+    jest.useFakeTimers();
+
+    const result = await setupWithOneTrack();
+
+    await act(async () => { result.current.play(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    const audio = mockAudioInstances[mockAudioInstances.length - 1];
+    audio.volume = result.current.volume;
+
+    act(() => {
+      result.current.fadeOut();
+      result.current.fadeOut(); // 이미 faded 상태 → 무시
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(audio.volume).toBe(0);
+
+    jest.useRealTimers();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
