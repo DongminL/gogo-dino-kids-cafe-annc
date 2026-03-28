@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { GripVertical, Trash2, Edit2, Check, X, RotateCcw } from "lucide-react";
 import "./BgMusicPanel.scss";
 import type { Track, Playlist } from "@/features/bg-music/types/bgMusic";
+import { stripExtension } from "@/utils";
 
 interface UploadingItem {
   uploadId: string;
@@ -61,6 +62,7 @@ export function BgMusicPanel({
   onSetAutoplay,
 }: BgMusicPanelProps): React.ReactNode {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
   const [uploadingItems, setUploadingItems] = useState<UploadingItem[]>([]);
@@ -71,6 +73,10 @@ export function BgMusicPanel({
   const [editingTrackIds, setEditingTrackIds] = useState<string[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const editAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    return () => { uploadTimersRef.current.forEach(clearTimeout); };
+  }, []);
 
   useEffect(() => {
     if (!isEditing) {
@@ -117,7 +123,7 @@ export function BgMusicPanel({
 
   const startUpload = useCallback(async (file: File, playlistId: string | null) => {
     const uploadId = `upload-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const fileName = file.name.replace(/\.[^.]+$/, "");
+    const fileName = stripExtension(file.name);
 
     setUploadingItems((prev) => [
       ...prev,
@@ -134,9 +140,10 @@ export function BgMusicPanel({
       setUploadingItems((prev) =>
         prev.map((item) => item.uploadId === uploadId ? { ...item, progress: 100, status: "done" } : item)
       );
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setUploadingItems((prev) => prev.filter((item) => item.uploadId !== uploadId));
       }, 1500);
+      uploadTimersRef.current.push(timer);
     } catch (err) {
       const error =
         err instanceof DOMException && err.name === "QuotaExceededError"
@@ -157,16 +164,16 @@ export function BgMusicPanel({
     e.target.value = "";
   };
 
-  const handleRetryUpload = (uploadId: string) => {
+  const handleRetryUpload = useCallback((uploadId: string) => {
     const item = uploadingItems.find((i) => i.uploadId === uploadId);
     if (!item) return;
     setUploadingItems((prev) => prev.filter((i) => i.uploadId !== uploadId));
     void startUpload(item.file, item.playlistId);
-  };
+  }, [uploadingItems, startUpload]);
 
-  const handleCancelUpload = (uploadId: string) => {
+  const handleCancelUpload = useCallback((uploadId: string) => {
     setUploadingItems((prev) => prev.filter((i) => i.uploadId !== uploadId));
-  };
+  }, []);
 
   const handleCreatePlaylist = () => {
     const name = newPlaylistName.trim();
@@ -284,12 +291,17 @@ export function BgMusicPanel({
     setDraggedIndex(null);
   };
 
-  const tracksToDisplay: Array<{ trackId: string; track: Track | undefined; index: number }> = 
-    isEditing 
+  const tracksToDisplay: Array<{ trackId: string; track: Track | undefined; index: number }> =
+    isEditing
       ? editingTrackIds.map((id, i) => ({ trackId: id, track: tracks.find(t => t.id === id), index: i }))
       : (currentPlaylist
           ? (currentPlaylist.trackIds ?? []).map((id, i) => ({ trackId: id, track: tracks.find(t => t.id === id), index: i }))
           : tracks.map((t, i) => ({ trackId: t.id, track: t, index: i })));
+
+  const visibleUploads = uploadingItems.filter((item) =>
+    currentPlaylistId === null || item.playlistId === currentPlaylistId
+  );
+  const isEmpty = tracksToDisplay.length === 0 && visibleUploads.length === 0;
 
   return (
     <section className="bg-music-panel">
@@ -439,20 +451,14 @@ export function BgMusicPanel({
             </div>
 
             <div className="bg-music-track-list">
-              {(() => {
-                const visibleUploads = uploadingItems.filter((item) =>
-                  currentPlaylistId === null || item.playlistId === currentPlaylistId
-                );
-                const isEmpty = tracksToDisplay.length === 0 && visibleUploads.length === 0;
-                return (
-                  <>
-                    {isEmpty && (
-                      <div className="bg-music-empty">
-                        {currentPlaylist ? "이 플레이리스트에는 곡이 없습니다." : "등록된 곡이 없습니다."}<br/>
-                        파일 추가 버튼을 눌러 음악을 업로드하세요.
-                      </div>
-                    )}
-                    {visibleUploads.map((item) => (
+              <>
+                {isEmpty && (
+                  <div className="bg-music-empty">
+                    {currentPlaylist ? "이 플레이리스트에는 곡이 없습니다." : "등록된 곡이 없습니다."}<br/>
+                    파일 추가 버튼을 눌러 음악을 업로드하세요.
+                  </div>
+                )}
+                {visibleUploads.map((item) => (
                       <div
                         key={item.uploadId}
                         className={`bg-music-track-item bg-music-track-item--uploading${item.status === "error" ? " bg-music-track-item--upload-error" : ""}${item.status === "done" ? " bg-music-track-item--upload-done" : ""}`}
@@ -497,10 +503,8 @@ export function BgMusicPanel({
                           </div>
                         )}
                       </div>
-                    ))}
-                  </>
-                );
-              })()}
+                ))}
+              </>
               {tracksToDisplay.length > 0 && (
                 tracksToDisplay.map(({ trackId, track, index }) => {
                   const isConfirmingLibrary = confirmDelete?.type === 'track' && confirmDelete.trackId === trackId;
