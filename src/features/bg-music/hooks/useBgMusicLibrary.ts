@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { Track } from "@/features/bg-music/types/bgMusic";
 import type { BgMusicSettings } from "@/features/bg-music/bgMusicSettings";
 import { saveTrackBlob, deleteTrackBlob } from "@/db/trackStorage";
+import { stripExtension } from "@/utils";
 
 interface UseLibraryOptions {
   settingsRef: React.MutableRefObject<BgMusicSettings>;
@@ -20,10 +21,30 @@ export function useLibrary({
 }: UseLibraryOptions) {
   // ─── Track ───────────────────────────────────────────────────────────────────
 
-  const addTrack = useCallback(async (file: File, playlistId?: string) => {
+  const addTrack = useCallback(async (
+    file: File,
+    playlistId?: string,
+    onProgress?: (progress: number) => void,
+  ) => {
     const id = `track-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const name = file.name.replace(/\.[^.]+$/, "");
+    const name = stripExtension(file.name);
+
+    await new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) {
+          onProgress?.(Math.round((e.loaded / e.total) * 75));
+        }
+      };
+      reader.onload = () => { onProgress?.(80); resolve(); };
+      reader.onerror = () => reject(reader.error ?? new Error("파일 읽기 실패"));
+      reader.readAsArrayBuffer(file);
+    });
+
+    onProgress?.(90);
     await saveTrackBlob(id, file);
+    onProgress?.(100);
+
     setSettings((prev) => {
       const newTrack: Track = { id, name };
       const newPlaylists = playlistId

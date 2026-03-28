@@ -63,7 +63,8 @@ function App() {
   const categories = Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[];
 
   const handleAddTrack = useCallback(
-    (file: File) => bgMusic.addTrack(file, bgMusic.currentPlaylistId ?? undefined),
+    (file: File, onProgress?: (progress: number) => void) =>
+      bgMusic.addTrack(file, bgMusic.currentPlaylistId ?? undefined, onProgress),
     [bgMusic]
   );
 
