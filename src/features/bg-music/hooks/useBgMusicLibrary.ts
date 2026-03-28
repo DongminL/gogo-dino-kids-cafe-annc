@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { Track } from "@/features/bg-music/types/bgMusic";
 import type { BgMusicSettings } from "@/features/bg-music/bgMusicSettings";
 import { saveTrackBlob, deleteTrackBlob } from "@/db/trackStorage";
+import { stripExtension } from "@/utils";
 
 interface UseLibraryOptions {
   settingsRef: React.MutableRefObject<BgMusicSettings>;
@@ -26,7 +27,7 @@ export function useLibrary({
     onProgress?: (progress: number) => void,
   ) => {
     const id = `track-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const name = file.name.replace(/\.[^.]+$/, "");
+    const name = stripExtension(file.name);
 
     await new Promise<void>((resolve, reject) => {
       const reader = new FileReader();
