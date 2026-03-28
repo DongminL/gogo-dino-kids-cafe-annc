@@ -722,6 +722,62 @@ describe("볼륨 및 페이드", () => {
       act(() => { result.current.fadeIn(); }); // isFaded=false 상태에서 호출
     }).not.toThrow();
   });
+
+  // ── 버그 수정 회귀 테스트 ────────────────────────────────────────────────────
+  // 안내 방송 재생 중(배경 음악이 없는 상태)에 fadeOut을 호출해도 isFaded 플래그가
+  // 설정되어야 하며, 이후 배경 음악이 재생될 때 볼륨 0으로 시작해야 한다.
+
+  it("안내 방송 재생 중 배경 음악 시작 시 볼륨 0으로 재생", async () => {
+    // 배경 음악 없는 상태에서 fadeOut (안내 방송 시작 시뮬레이션)
+    const result = await setupWithOneTrack();
+
+    act(() => { result.current.fadeOut(); });
+
+    // 안내 방송 재생 중에 배경 음악 재생
+    await act(async () => { result.current.play(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    expect(mockAudioInstances[mockAudioInstances.length - 1].volume).toBe(0);
+  });
+
+  it("배경 음악 없을 때 fadeOut 후 fadeIn → 이후 배경 음악 재생 시 정상 볼륨으로 시작", async () => {
+    const result = await setupWithOneTrack();
+    const targetVolume = result.current.volume;
+
+    // 배경 음악 없이 fadeOut → fadeIn (안내 방송 시작 후 종료 시뮬레이션)
+    act(() => {
+      result.current.fadeOut();
+      result.current.fadeIn();
+    });
+
+    // 안내 방송 종료 후 배경 음악 재생
+    await act(async () => { result.current.play(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    expect(mockAudioInstances[mockAudioInstances.length - 1].volume).toBe(targetVolume);
+  });
+
+  it("배경 음악 없을 때 fadeOut 중복 호출 시 두 번째는 무시됨", async () => {
+    jest.useFakeTimers();
+
+    const result = await setupWithOneTrack();
+
+    await act(async () => { result.current.play(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    const audio = mockAudioInstances[mockAudioInstances.length - 1];
+    audio.volume = result.current.volume;
+
+    act(() => {
+      result.current.fadeOut();
+      result.current.fadeOut(); // 이미 faded 상태 → 무시
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(audio.volume).toBe(0);
+
+    jest.useRealTimers();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -885,6 +941,185 @@ describe("플레이리스트 전환 및 재생 유지", () => {
       expect(result.current.playingPlaylistId).toBe(id2);
       expect(result.current.currentTrack?.name).toBe("b");
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("addTrack - onProgress 콜백", () => {
+  let mockReaderInstance: {
+    onprogress: ((e: Partial<ProgressEvent>) => void) | null;
+    onload: (() => void) | null;
+    onerror: (() => void) | null;
+    error: Error | null;
+    readAsArrayBuffer: jest.Mock;
+  } | null;
+
+  class MockFileReader {
+    onprogress: ((e: Partial<ProgressEvent>) => void) | null = null;
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    error: Error | null = null;
+    readAsArrayBuffer = jest.fn(() => { mockReaderInstance = this; });
+  }
+
+  let originalFileReader: typeof FileReader;
+
+  beforeEach(() => {
+    mockReaderInstance = null;
+    originalFileReader = global.FileReader;
+    global.FileReader = MockFileReader as unknown as typeof FileReader;
+  });
+
+  afterEach(() => {
+    global.FileReader = originalFileReader;
+  });
+
+  it("파일 읽기 중 onProgress가 0-75 범위로 호출됨", async () => {
+    const { result } = renderHook(() => useBgMusic());
+    const onProgress = jest.fn();
+    const file = new File(["audio"], "test.mp3");
+
+    let addTrackPromise!: Promise<void>;
+    act(() => {
+      addTrackPromise = result.current.addTrack(file, undefined, onProgress);
+    });
+
+    expect(mockReaderInstance).not.toBeNull();
+
+    // 50% 읽기 진행 → Math.round(50/100 * 75) = Math.round(37.5) = 38
+    act(() => {
+      mockReaderInstance!.onprogress?.({ lengthComputable: true, loaded: 50, total: 100 });
+    });
+    expect(onProgress).toHaveBeenCalledWith(38);
+
+    // 100% 읽기 진행 → Math.round(100/100 * 75) = 75
+    act(() => {
+      mockReaderInstance!.onprogress?.({ lengthComputable: true, loaded: 100, total: 100 });
+    });
+    expect(onProgress).toHaveBeenCalledWith(75);
+
+    // onload 완료 → 80%, 90%, 100% 순서로 호출
+    await act(async () => {
+      mockReaderInstance!.onload?.();
+      await addTrackPromise;
+    });
+
+    expect(onProgress).toHaveBeenCalledWith(80);
+    expect(onProgress).toHaveBeenCalledWith(90);
+    expect(onProgress).toHaveBeenCalledWith(100);
+  });
+
+  it("onProgress 호출 순서: 읽기 중(0-75%) → 로드 완료(80) → 저장 전(90) → 저장 후(100)", async () => {
+    const { result } = renderHook(() => useBgMusic());
+    const calls: number[] = [];
+    const onProgress = jest.fn((v: number) => calls.push(v));
+    const file = new File(["audio"], "order-test.mp3");
+
+    let addTrackPromise!: Promise<void>;
+    act(() => {
+      addTrackPromise = result.current.addTrack(file, undefined, onProgress);
+    });
+
+    act(() => {
+      mockReaderInstance!.onprogress?.({ lengthComputable: true, loaded: 30, total: 100 });
+    });
+
+    await act(async () => {
+      mockReaderInstance!.onload?.();
+      await addTrackPromise;
+    });
+
+    expect(calls[0]).toBe(23); // Math.round(30/100 * 75) = Math.round(22.5) = 23
+    expect(calls[1]).toBe(80);
+    expect(calls[2]).toBe(90);
+    expect(calls[3]).toBe(100);
+  });
+
+  it("lengthComputable=false이면 읽기 중에는 onProgress를 호출하지 않음", async () => {
+    const { result } = renderHook(() => useBgMusic());
+    const onProgress = jest.fn();
+    const file = new File(["audio"], "no-progress.mp3");
+
+    let addTrackPromise!: Promise<void>;
+    act(() => {
+      addTrackPromise = result.current.addTrack(file, undefined, onProgress);
+    });
+
+    act(() => {
+      mockReaderInstance!.onprogress?.({ lengthComputable: false, loaded: 50, total: 100 });
+    });
+
+    // 읽기 중에는 호출되지 않음
+    expect(onProgress).not.toHaveBeenCalled();
+
+    // 완료 후에는 80, 90, 100 호출됨
+    await act(async () => {
+      mockReaderInstance!.onload?.();
+      await addTrackPromise;
+    });
+
+    expect(onProgress).toHaveBeenCalledWith(80);
+    expect(onProgress).toHaveBeenCalledWith(90);
+    expect(onProgress).toHaveBeenCalledWith(100);
+  });
+
+  it("파일 읽기 실패(onerror) 시 reader.error를 reject함", async () => {
+    const { result } = renderHook(() => useBgMusic());
+    const file = new File(["audio"], "fail.mp3");
+
+    let caughtError: Error | null = null;
+    let addTrackPromise!: Promise<void>;
+    act(() => {
+      addTrackPromise = result.current.addTrack(file);
+    });
+
+    await act(async () => {
+      const mockError = new Error("읽기 실패");
+      mockReaderInstance!.error = mockError;
+      mockReaderInstance!.onerror?.();
+      try { await addTrackPromise; } catch (e) { caughtError = e as Error; }
+    });
+
+    expect(caughtError).not.toBeNull();
+    expect(caughtError!.message).toBe("읽기 실패");
+  });
+
+  it("파일 읽기 실패 시 FileReader.error가 null이면 '파일 읽기 실패' 기본 오류 사용", async () => {
+    const { result } = renderHook(() => useBgMusic());
+    const file = new File(["audio"], "null-error.mp3");
+
+    let caughtError: Error | null = null;
+    let addTrackPromise!: Promise<void>;
+    act(() => {
+      addTrackPromise = result.current.addTrack(file);
+    });
+
+    await act(async () => {
+      mockReaderInstance!.error = null;
+      mockReaderInstance!.onerror?.();
+      try { await addTrackPromise; } catch (e) { caughtError = e as Error; }
+    });
+
+    expect(caughtError).not.toBeNull();
+    expect(caughtError!.message).toBe("파일 읽기 실패");
+  });
+
+  it("onProgress 미전달 시에도 addTrack이 정상적으로 트랙을 추가함", async () => {
+    const { result } = renderHook(() => useBgMusic());
+    const file = new File(["audio"], "no-callback.mp3");
+
+    let addTrackPromise!: Promise<void>;
+    act(() => {
+      addTrackPromise = result.current.addTrack(file); // onProgress 없음
+    });
+
+    await act(async () => {
+      mockReaderInstance!.onload?.();
+      await addTrackPromise;
+    });
+
+    expect(result.current.tracks).toHaveLength(1);
+    expect(result.current.tracks[0].name).toBe("no-callback");
   });
 });
 

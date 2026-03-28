@@ -575,10 +575,87 @@
   }
 }
 
-.bg-music-add-error {
-  margin-top: 8px;
+// ── Upload Progress ──────────────────────────────────────────────────────────
+.bg-music-track-item--uploading {
+  cursor: default;
+  &:hover { background: white; }
+
+  .bg-music-track-item__num {
+    color: #bbb;
+    font-size: 0.75rem;
+  }
+}
+
+.bg-music-track-item--upload-error {
+  background: #fff8f8 !important;
+  border-left: 3px solid #ef9a9a;
+
+  .bg-music-track-item__name { color: #c62828; }
+}
+
+.bg-music-track-item--upload-done {
+  background: #f4faf5 !important;
+}
+
+.bg-music-track-item__upload-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.upload-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.upload-percent {
   font-size: 0.75rem;
-  color: #d32f2f;
+  font-weight: 700;
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.upload-error-label {
+  font-size: 0.75rem;
+  color: #c62828;
+  flex-shrink: 0;
+}
+
+.upload-done-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $primary;
+  flex-shrink: 0;
+}
+
+.upload-progress-bar {
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.2s ease;
+
+  &--uploading {
+    background: $primary;
+  }
+
+  &--done {
+    background: $primary;
+    opacity: 0.6;
+  }
+
+  &--error {
+    background: #ef9a9a;
+  }
 }
 
 .bg-music-input {

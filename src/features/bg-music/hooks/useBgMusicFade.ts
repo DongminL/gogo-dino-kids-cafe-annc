@@ -18,8 +18,9 @@ export function useBgMusicFade(
   }, []);
 
   const fadeOut = useCallback(() => {
-    if (!audioRef.current || isFadedRef.current) return;
+    if (isFadedRef.current) return;
     isFadedRef.current = true;
+    if (!audioRef.current) return;
     clearFadeTimer();
     const audio = audioRef.current;
     const startVol = audio.volume;
@@ -37,8 +38,9 @@ export function useBgMusicFade(
   }, [audioRef, clearFadeTimer]);
 
   const fadeIn = useCallback(() => {
-    if (!audioRef.current || !isFadedRef.current) return;
+    if (!isFadedRef.current) return;
     isFadedRef.current = false;
+    if (!audioRef.current) return;
     clearFadeTimer();
     const audio = audioRef.current;
     const targetVol = volumeRef.current;
