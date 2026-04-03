@@ -40,7 +40,8 @@ function App() {
   const [dayTypeOverride, setDayTypeOverride] = useState<DayType | null>(null);
   const [showTimeRangeSettings, setShowTimeRangeSettings] = useState(false);
 
-  const effectiveDayType: DayType = dayTypeOverride ?? getDayType(currentTime);
+  const detectedDayType = getDayType(currentTime);
+  const effectiveDayType: DayType = dayTypeOverride ?? detectedDayType;
 
   const bgMusic = useBgMusic();
   const updater = useUpdater();
@@ -354,7 +355,7 @@ function App() {
       {showTimeRangeSettings && (
         <TimeRangeSettingsModal
           settings={timeRangeSettings}
-          detectedDayType={getDayType(currentTime)}
+          detectedDayType={detectedDayType}
           dayTypeOverride={dayTypeOverride}
           onChangeDayTypeOverride={setDayTypeOverride}
           onChange={setTimeRangeSettings}

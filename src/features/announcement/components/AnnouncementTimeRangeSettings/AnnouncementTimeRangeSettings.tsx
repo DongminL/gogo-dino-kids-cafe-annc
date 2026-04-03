@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "./AnnouncementTimeRangeSettings.scss";
 import type { AnnouncementTimeRangeSettings as ISettings, DayType, TimeRange } from "@/features/announcement/types/schedule";
 import { Wheel } from "@/components/TimePicker/TimePicker";
 import type { WheelOption } from "@/components/TimePicker/TimePicker";
+import { Clock } from "lucide-react";
 
 interface Props {
   settings: ISettings;
@@ -13,6 +14,16 @@ interface Props {
   onClose: () => void;
 }
 
+const HOUR_OPTIONS: WheelOption[] = Array.from({ length: 24 }, (_, i) => {
+  const v = String(i).padStart(2, "0");
+  return { label: v, value: v };
+});
+
+const MINUTE_OPTIONS: WheelOption[] = Array.from({ length: 60 }, (_, i) => {
+  const v = String(i).padStart(2, "0");
+  return { label: v, value: v };
+});
+
 export function AnnouncementTimeRangeSettings({
   settings,
   detectedDayType,
@@ -22,20 +33,11 @@ export function AnnouncementTimeRangeSettings({
   onClose,
 }: Props): React.ReactNode {
   const [draft, setDraft] = useState<ISettings>(settings);
-  const [isAuto, setIsAuto] = useState(dayTypeOverride === null);
   const initialDayTypeOverride = useRef(dayTypeOverride);
 
+  const isAuto = dayTypeOverride === null;
   const timeRangeEnabled = draft.enabled;
   const [activePicker, setActivePicker] = useState<{ dayType: DayType, field: keyof TimeRange } | null>(null);
-
-  const hourOptions: WheelOption[] = useMemo(
-    () => Array.from({ length: 24 }, (_, i) => ({ label: String(i).padStart(2, "0"), value: String(i).padStart(2, "0") })),
-    []
-  );
-  const minuteOptions: WheelOption[] = useMemo(
-    () => Array.from({ length: 60 }, (_, i) => ({ label: String(i).padStart(2, "0"), value: String(i).padStart(2, "0") })),
-    []
-  );
 
   const updateRange = (dayType: DayType, field: keyof TimeRange, hhmm: string) => {
     setDraft((prev) => ({
@@ -55,16 +57,7 @@ export function AnnouncementTimeRangeSettings({
   };
 
   const handleAutoToggle = (checked: boolean) => {
-    setIsAuto(checked);
-    if (checked) {
-      onChangeDayTypeOverride(null);
-    } else {
-      onChangeDayTypeOverride(detectedDayType);
-    }
-  };
-
-  const handleDayTypeOverride = (v: DayType) => {
-    onChangeDayTypeOverride(v);
+    onChangeDayTypeOverride(checked ? null : detectedDayType);
   };
 
   const togglePicker = (dayType: DayType, field: keyof TimeRange) => {
@@ -73,12 +66,7 @@ export function AnnouncementTimeRangeSettings({
     );
   };
 
-  const ClockIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <polyline points="12 6 12 12 16 14"></polyline>
-    </svg>
-  );
+  const effectiveOverride = dayTypeOverride ?? detectedDayType;
 
   const renderTimeBox = (dayType: DayType, field: keyof TimeRange, label: string) => {
     const range = draft[dayType];
@@ -97,7 +85,7 @@ export function AnnouncementTimeRangeSettings({
           }}
         >
           <span className="time-text">{value}</span>
-          <span className="clock-icon"><ClockIcon /></span>
+          <span className="clock-icon"><Clock size={18} strokeWidth={2.5} /></span>
         </div>
 
         {isActive && (
@@ -106,13 +94,13 @@ export function AnnouncementTimeRangeSettings({
             onClick={(e) => e.stopPropagation()} // Prevent close when scrolling wheels
           >
             <Wheel
-              options={hourOptions}
+              options={HOUR_OPTIONS}
               value={h}
               onChange={(newH) => updateRange(dayType, field, `${newH}:${m}`)}
             />
             <span className="wheel-colon">:</span>
             <Wheel
-              options={minuteOptions}
+              options={MINUTE_OPTIONS}
               value={m}
               onChange={(newM) => updateRange(dayType, field, `${h}:${newM}`)}
             />
@@ -121,8 +109,6 @@ export function AnnouncementTimeRangeSettings({
       </div>
     );
   };
-
-  const effectiveOverride = dayTypeOverride ?? detectedDayType;
 
   const renderTimeRangeRows = (dayType: DayType) => {
     return (
@@ -159,66 +145,69 @@ export function AnnouncementTimeRangeSettings({
             </label>
           </div>
 
-          {/* 요일 감지/설정 섹션 */}
-          {timeRangeEnabled && <div className="day-type-section">
-            <div className="manual-override-row">
-              <span className="settings-label">자동 설정</span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={isAuto}
-                  onChange={(e) => handleAutoToggle(e.target.checked)}
-                />
-                <span className="toggle-slider" />
-              </label>
-            </div>
-            {isAuto ? (
-              <div className="detected-day-type">
-                <span className="detected-label">감지된 요일 유형</span>
-                <span className="detected-value">
-                  {detectedDayType === "weekday" ? "평일" : "주말·공휴일"}
-                </span>
+          {/* 요일 감지/설정 + 시간대 섹션 */}
+          {timeRangeEnabled && (
+            <>
+              <div className="day-type-section">
+                <div className="manual-override-row">
+                  <span className="settings-label">자동 설정</span>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={isAuto}
+                      onChange={(e) => handleAutoToggle(e.target.checked)}
+                    />
+                    <span className="toggle-slider" />
+                  </label>
+                </div>
+                {isAuto ? (
+                  <div className="detected-day-type">
+                    <span className="detected-label">감지된 요일 유형</span>
+                    <span className="detected-value">
+                      {detectedDayType === "weekday" ? "평일" : "주말·공휴일"}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="day-type-buttons">
+                    <button
+                      className={`day-type-btn ${effectiveOverride === "weekday" ? "active" : ""}`}
+                      onClick={() => onChangeDayTypeOverride("weekday")}
+                    >
+                      평일
+                    </button>
+                    <button
+                      className={`day-type-btn ${effectiveOverride === "holiday" ? "active" : ""}`}
+                      onClick={() => onChangeDayTypeOverride("holiday")}
+                    >
+                      주말·공휴일
+                    </button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="day-type-buttons">
-                <button
-                  className={`day-type-btn ${effectiveOverride === "weekday" ? "active" : ""}`}
-                  onClick={() => handleDayTypeOverride("weekday")}
-                >
-                  평일
-                </button>
-                <button
-                  className={`day-type-btn ${effectiveOverride === "holiday" ? "active" : ""}`}
-                  onClick={() => handleDayTypeOverride("holiday")}
-                >
-                  주말·공휴일
-                </button>
-              </div>
-            )}
-          </div>}
 
-          {/* 시간대 섹션 */}
-          {timeRangeEnabled && <div>
-            {isAuto ? (
-              <>
-                <div>
-                  <p className="section-title">평일 시간대</p>
-                  {renderTimeRangeRows("weekday")}
-                </div>
-                <div style={{ marginTop: "24px" }}>
-                  <p className="section-title">주말·공휴일 시간대</p>
-                  {renderTimeRangeRows("holiday")}
-                </div>
-              </>
-            ) : (
               <div>
-                <p className="section-title">
-                  {effectiveOverride === "weekday" ? "평일 시간대" : "주말·공휴일 시간대"}
-                </p>
-                {renderTimeRangeRows(effectiveOverride)}
+                {isAuto ? (
+                  <>
+                    <div>
+                      <p className="section-title">평일 시간대</p>
+                      {renderTimeRangeRows("weekday")}
+                    </div>
+                    <div style={{ marginTop: "24px" }}>
+                      <p className="section-title">주말·공휴일 시간대</p>
+                      {renderTimeRangeRows("holiday")}
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <p className="section-title">
+                      {effectiveOverride === "weekday" ? "평일 시간대" : "주말·공휴일 시간대"}
+                    </p>
+                    {renderTimeRangeRows(effectiveOverride)}
+                  </div>
+                )}
               </div>
-            )}
-          </div>}
+            </>
+          )}
         </div>
 
         <div className="modal-footer">
