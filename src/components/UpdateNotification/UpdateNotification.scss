@@ -59,6 +59,13 @@
       color: #002D62;
       font-weight: 800;
     }
+
+    .update-version-link {
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      &:hover { color: #1a4a8a; }
+    }
   }
 
   .update-action-btn {

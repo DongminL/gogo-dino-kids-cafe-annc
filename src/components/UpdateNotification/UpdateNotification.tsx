@@ -27,7 +27,10 @@ export function UpdateNotification(
         <div className="update-icon-wrapper">
           <Download size={18} />
         </div>
-        <span>새 버전 <strong>{updateInfo.version}</strong>이 출시되었습니다.</span>
+        <span>새 버전 <strong
+          className="update-version-link"
+          onClick={() => window.electronAPI?.openExternal(`https://github.com/DongminL/gogo-dino-kids-cafe-annc/releases/tag/v${updateInfo.version}`)}
+        >{updateInfo.version}</strong>이 출시되었습니다.</span>
         <button className="update-action-btn" onClick={onDownload}>업데이트</button>
         <button className="update-dismiss-btn" onClick={onDismiss}><X size={14} /></button>
       </div>
