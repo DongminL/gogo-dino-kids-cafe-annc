@@ -138,7 +138,11 @@ function setupAutoUpdater() {
   });
 
   // IPC: 렌더러에서 보내는 업데이트 명령 처리
-  ipcMain.on('open-external', (_event, url) => shell.openExternal(url));
+  ipcMain.on('open-external', (_event, url) => {
+    if (typeof url === 'string' && url.startsWith('https://github.com')) {
+      shell.openExternal(url);
+    }
+  });
   ipcMain.on('check-for-updates', () => autoUpdater.checkForUpdates());
   ipcMain.on('download-update', () => autoUpdater.downloadUpdate());
   ipcMain.on('install-update', () => {
