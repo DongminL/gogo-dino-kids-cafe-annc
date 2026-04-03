@@ -1,5 +1,5 @@
-import type { Schedule } from "@/features/announcement/types/schedule";
-import { ANNOUNCEMENT_DEFS, STORAGE_KEY } from "./constants";
+import type { Schedule, AnnouncementTimeRangeSettings } from "@/features/announcement/types/schedule";
+import { ANNOUNCEMENT_DEFS, STORAGE_KEY, TIME_RANGE_STORAGE_KEY } from "./constants";
 
 export function stripExtension(filename: string): string {
   return filename.replace(/\.[^.]+$/, "");
@@ -41,6 +41,28 @@ export function getScheduleLabel(schedule: Schedule): string {
     default:
       return "";
   }
+}
+
+export const DEFAULT_TIME_RANGE_SETTINGS: AnnouncementTimeRangeSettings = {
+  enabled: true,
+  weekday: { start: "13:00", end: "19:55" },
+  holiday: { start: "10:00", end: "19:55" },
+};
+
+export function loadTimeRangeSettings(): AnnouncementTimeRangeSettings {
+  try {
+    const saved = localStorage.getItem(TIME_RANGE_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        ...DEFAULT_TIME_RANGE_SETTINGS,
+        ...parsed,
+        weekday: { ...DEFAULT_TIME_RANGE_SETTINGS.weekday, ...parsed.weekday },
+        holiday: { ...DEFAULT_TIME_RANGE_SETTINGS.holiday, ...parsed.holiday },
+      };
+    }
+  } catch {}
+  return { ...DEFAULT_TIME_RANGE_SETTINGS };
 }
 
 export function loadSettings(): Record<string, Schedule> {

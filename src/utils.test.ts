@@ -1,4 +1,4 @@
-import { formatTime, formatDuration, getScheduleLabel, loadSettings } from "./utils";
+import { formatTime, formatDuration, getScheduleLabel, loadSettings, loadTimeRangeSettings, DEFAULT_TIME_RANGE_SETTINGS } from "./utils";
 import type { Schedule } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS } from "./constants";
 
@@ -99,5 +99,31 @@ describe("loadSettings", () => {
     ANNOUNCEMENT_DEFS.forEach((def) => {
       expect(settings[def.id]).toEqual(def.defaultSchedule);
     });
+  });
+});
+
+describe("loadTimeRangeSettings", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("저장된 데이터 없으면 기본값 반환", () => {
+    const settings = loadTimeRangeSettings();
+    expect(settings).toEqual(DEFAULT_TIME_RANGE_SETTINGS);
+    expect(settings.enabled).toBe(true);
+  });
+
+  it("저장된 데이터 있으면 병합 반환", () => {
+    const saved = { weekday: { start: "09:00", end: "18:00" } };
+    localStorage.setItem("annc-time-range", JSON.stringify(saved));
+    const settings = loadTimeRangeSettings();
+    expect(settings.weekday).toEqual({ start: "09:00", end: "18:00" });
+    expect(settings.holiday).toEqual(DEFAULT_TIME_RANGE_SETTINGS.holiday);
+  });
+
+  it("잘못된 JSON이면 기본값 반환", () => {
+    localStorage.setItem("annc-time-range", "invalid-json{{{");
+    const settings = loadTimeRangeSettings();
+    expect(settings).toEqual(DEFAULT_TIME_RANGE_SETTINGS);
   });
 });

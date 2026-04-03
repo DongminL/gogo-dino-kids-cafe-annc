@@ -1,4 +1,4 @@
-import { shouldFire } from "./useScheduler";
+import { shouldFire, getDayType, isInTimeRange } from "./useScheduler";
 import type { Schedule } from "../types/schedule";
 
 const base: Schedule = { type: "once", time: "00:00", intervalMinutes: 30, enabled: true };
@@ -78,5 +78,57 @@ describe("shouldFire", () => {
     it("intervalMinutes=0이면 false 반환", () => {
       expect(shouldFire({ ...schedule, intervalMinutes: 0 }, 1, 0)).toBe(false);
     });
+  });
+});
+
+describe("getDayType", () => {
+  it("월요일(1) → weekday", () => {
+    const date = new Date(2024, 0, 1); // 2024-01-01 is Monday
+    expect(getDayType(date)).toBe("weekday");
+  });
+
+  it("금요일(5) → weekday", () => {
+    const date = new Date(2024, 0, 5); // 2024-01-05 is Friday
+    expect(getDayType(date)).toBe("weekday");
+  });
+
+  it("일요일(0) → holiday", () => {
+    const date = new Date(2024, 0, 7); // 2024-01-07 is Sunday
+    expect(getDayType(date)).toBe("holiday");
+  });
+
+  it("토요일(6) → holiday", () => {
+    const date = new Date(2024, 0, 6); // 2024-01-06 is Saturday
+    expect(getDayType(date)).toBe("holiday");
+  });
+});
+
+describe("isInTimeRange", () => {
+  it("범위 내 시각 true", () => {
+    expect(isInTimeRange("13:00", "19:55", 15, 0)).toBe(true);
+  });
+
+  it("시작 경계 true", () => {
+    expect(isInTimeRange("13:00", "19:55", 13, 0)).toBe(true);
+  });
+
+  it("종료 경계 true", () => {
+    expect(isInTimeRange("13:00", "19:55", 19, 55)).toBe(true);
+  });
+
+  it("시작 전 false", () => {
+    expect(isInTimeRange("13:00", "19:55", 12, 59)).toBe(false);
+  });
+
+  it("종료 후 false", () => {
+    expect(isInTimeRange("13:00", "19:55", 20, 0)).toBe(false);
+  });
+
+  it("주말 시작 경계 true", () => {
+    expect(isInTimeRange("10:00", "19:55", 10, 0)).toBe(true);
+  });
+
+  it("주말 시작 전 false", () => {
+    expect(isInTimeRange("10:00", "19:55", 9, 59)).toBe(false);
   });
 });

@@ -83,13 +83,13 @@ export function TimePicker({ mode, hour, minute, onChange }: TimePickerProps) {
   );
 }
 
-interface WheelProps {
+export interface WheelProps {
   options: WheelOption[];
   value: string;
   onChange: (v: string) => void;
 }
 
-function Wheel({ options, value, onChange }: WheelProps) {
+export function Wheel({ options, value, onChange }: WheelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
