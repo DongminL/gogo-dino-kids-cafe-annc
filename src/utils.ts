@@ -52,7 +52,15 @@ export const DEFAULT_TIME_RANGE_SETTINGS: AnnouncementTimeRangeSettings = {
 export function loadTimeRangeSettings(): AnnouncementTimeRangeSettings {
   try {
     const saved = localStorage.getItem(TIME_RANGE_STORAGE_KEY);
-    if (saved) return { ...DEFAULT_TIME_RANGE_SETTINGS, ...JSON.parse(saved) };
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        ...DEFAULT_TIME_RANGE_SETTINGS,
+        ...parsed,
+        weekday: { ...DEFAULT_TIME_RANGE_SETTINGS.weekday, ...parsed.weekday },
+        holiday: { ...DEFAULT_TIME_RANGE_SETTINGS.holiday, ...parsed.holiday },
+      };
+    }
   } catch {}
   return { ...DEFAULT_TIME_RANGE_SETTINGS };
 }
