@@ -36,6 +36,28 @@ Windows 환경에서 실행되는 Electron 기반 데스크톱 앱으로, 키즈
 
 ![스케줄 설정](https://github.com/user-attachments/assets/a55930c4-192b-472f-bb87-925c2069da3e)
 
+### 자동 재생 시간대 설정
+
+안내 방송 자동 재생이 동작할 시간대를 설정할 수 있습니다. 수동 재생에는 영향을 주지 않습니다.
+
+![자동 재생 시간대 설정](https://github.com/user-attachments/assets/7ad8bf25-9c97-45b6-af81-dbcbe9bf81ff)
+
+- **시간대 제한 사용** 토글로 기능 전체 on/off
+- **평일 / 주말·공휴일** 각각 시작·종료 시각 개별 설정
+- 앱 시작 시 한국 시간 기준으로 요일 유형(평일/주말) 자동 감지
+- 수동으로 요일 유형 직접 지정 가능
+
+**기본 시간대**
+
+| 요일 유형 | 시작 | 종료 |
+|---|---|---|
+| 평일 | 13:00 | 19:55 |
+| 주말·공휴일 | 10:00 | 19:55 |
+
+![자동 재생 시간대 설정 - 자동](https://github.com/user-attachments/assets/d1d7bfa6-3a1a-4389-ba5a-0cf41d2f1279)
+
+![자동 재생 시간대 설정 - 수동](https://github.com/user-attachments/assets/266d0feb-1bb9-40c1-a196-c2ff7ecd0903)
+
 ### 오디오 플레이어
 
 - 재생 / 정지
