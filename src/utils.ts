@@ -5,10 +5,6 @@ export function stripExtension(filename: string): string {
   return filename.replace(/\.[^.]+$/, "");
 }
 
-export function stripExtension(filename: string): string {
-  return filename.replace(/\.[^.]+$/, "");
-}
-
 export function getKoreanTime(): Date {
   return new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
 }
