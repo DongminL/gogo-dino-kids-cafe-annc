@@ -1,16 +1,18 @@
 import React, { useState, useCallback, useEffect } from "react";
 import "./App.scss";
 import type { Schedule } from "@/features/announcement/types/schedule";
-import { ANNOUNCEMENT_DEFS, ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS, STORAGE_KEY } from "@/constants";
-import { loadSettings, formatTime } from "@/utils";
+import type { AnnouncementTimeRangeSettings, DayType } from "@/features/announcement/types/schedule";
+import { ANNOUNCEMENT_DEFS, ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS, STORAGE_KEY, TIME_RANGE_STORAGE_KEY } from "@/constants";
+import { loadSettings, formatTime, loadTimeRangeSettings } from "@/utils";
 import { useKoreanClock } from "@/hooks/useKoreanClock";
 import { useAudioPlayer } from "@/features/announcement/hooks/useAudioPlayer";
-import { useScheduler } from "@/features/announcement/hooks/useScheduler";
+import { useScheduler, getDayType } from "@/features/announcement/hooks/useScheduler";
 import { useBgMusic } from "@/features/bg-music/hooks/useBgMusic";
 import { CategorySection } from "@/features/announcement/components/CategorySection/CategorySection";
 import { BgMusicPanel } from "@/features/bg-music/components/BgMusicPanel/BgMusicPanel";
 import { GlobalBottomBar } from "@/components/GlobalBottomBar/GlobalBottomBar";
 import { ScheduleSettings } from "@/features/announcement/components/ScheduleSettings/ScheduleSettings";
+import { AnnouncementTimeRangeSettings as TimeRangeSettingsModal } from "@/features/announcement/components/AnnouncementTimeRangeSettings/AnnouncementTimeRangeSettings";
 import { UpdateNotification } from "@/components/UpdateNotification/UpdateNotification";
 import { useUpdater } from "@/hooks/useUpdater";
 import {
@@ -23,7 +25,7 @@ import {
   PlusCircle,
   ChevronRight,
   Disc,
-  Clock
+  CalendarClock
 } from "lucide-react";
 
 function App() {
@@ -33,6 +35,12 @@ function App() {
   const [openSettingsId, setOpenSettingsId] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<string>("all-announcements");
+
+  const [timeRangeSettings, setTimeRangeSettings] = useState<AnnouncementTimeRangeSettings>(loadTimeRangeSettings);
+  const [dayTypeOverride, setDayTypeOverride] = useState<DayType | null>(null);
+  const [showTimeRangeSettings, setShowTimeRangeSettings] = useState(false);
+
+  const effectiveDayType: DayType = dayTypeOverride ?? getDayType(currentTime);
 
   const bgMusic = useBgMusic();
   const updater = useUpdater();
@@ -50,6 +58,10 @@ function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
   }, [schedules]);
 
+  useEffect(() => {
+    localStorage.setItem(TIME_RANGE_STORAGE_KEY, JSON.stringify(timeRangeSettings));
+  }, [timeRangeSettings]);
+
   const updateSchedule = useCallback((id: string, update: Partial<Schedule>) => {
     setSchedules((prev) => ({ ...prev, [id]: { ...prev[id], ...update } }));
   }, []);
@@ -58,9 +70,11 @@ function App() {
     setOpenSettingsId((prev) => (prev === id ? null : id));
   }, []);
 
-  useScheduler(currentTime, schedules, play);
+  useScheduler(currentTime, schedules, timeRangeSettings, effectiveDayType, play);
 
   const categories = Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[];
+
+  const isAnnouncementTab = activeTab === "all-announcements" || categories.includes(activeTab as any);
 
   const handleAddTrack = useCallback(
     (file: File, onProgress?: (progress: number) => void) =>
@@ -263,8 +277,19 @@ function App() {
         <header className="main-header">
           <h1>{activeTitle || "배경 음악"}</h1>
           <div className="current-time">
-            <Clock size={20} className="clock-icon" />
-            <span>{formatTime(currentTime)}</span>
+            <span className="time-text">{formatTime(currentTime)}</span>
+            {isAnnouncementTab && (
+              <>
+                <div className="time-divider" />
+                <button
+                  className="btn-time-range-settings"
+                  onClick={() => setShowTimeRangeSettings(true)}
+                  title="자동 재생 시간대 설정"
+                >
+                  <CalendarClock size={20} />
+                </button>
+              </>
+            )}
           </div>
         </header>
         <main className="content-area">
@@ -323,6 +348,17 @@ function App() {
           schedule={schedules[openSettingsId]}
           onChange={(update) => updateSchedule(openSettingsId, update)}
           onClose={() => setOpenSettingsId(null)}
+        />
+      )}
+
+      {showTimeRangeSettings && (
+        <TimeRangeSettingsModal
+          settings={timeRangeSettings}
+          detectedDayType={getDayType(currentTime)}
+          dayTypeOverride={dayTypeOverride}
+          onChangeDayTypeOverride={setDayTypeOverride}
+          onChange={setTimeRangeSettings}
+          onClose={() => setShowTimeRangeSettings(false)}
         />
       )}
 
