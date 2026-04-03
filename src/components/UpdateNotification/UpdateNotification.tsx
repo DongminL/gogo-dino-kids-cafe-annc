@@ -3,6 +3,8 @@ import { Download, RefreshCw, X, AlertCircle } from 'lucide-react';
 import type { UpdateStatus } from '../../hooks/useUpdater';
 import './UpdateNotification.scss';
 
+const GITHUB_RELEASES_URL = 'https://github.com/DongminL/gogo-dino-kids-cafe-annc/releases/tag';
+
 interface Props {
   status: UpdateStatus;
   updateInfo: { version: string } | null;
@@ -27,7 +29,10 @@ export function UpdateNotification(
         <div className="update-icon-wrapper">
           <Download size={18} />
         </div>
-        <span>새 버전 <strong>{updateInfo.version}</strong>이 출시되었습니다.</span>
+        <span>새 버전 <button
+          className="update-version-link"
+          onClick={() => window.electronAPI?.openExternal(`${GITHUB_RELEASES_URL}/v${updateInfo.version}`)}
+        >{updateInfo.version}</button>이 출시되었습니다.</span>
         <button className="update-action-btn" onClick={onDownload}>업데이트</button>
         <button className="update-dismiss-btn" onClick={onDismiss}><X size={14} /></button>
       </div>

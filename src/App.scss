@@ -259,16 +259,45 @@ body {
   .current-time {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     font-size: 1.25rem;
     font-weight: 700;
-    color: #64748b; /* 차분한 슬레이트 그레이 */
+    color: #334155; /* 좀 더 또렷한 슬레이트 그레이 */
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.5px;
-    margin-right: 16px; // 우측 여백 살짝 추가
+    margin-right: 16px;
     
-    .clock-icon {
-      color: #94a3b8;
+    .time-text {
+      padding-right: 4px;
+    }
+
+    .time-divider {
+      width: 1px;
+      height: 20px;
+      background-color: #e2e8f0;
+      margin: 0 4px;
+    }
+
+    .btn-time-range-settings {
+      background: transparent;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      color: #94a3b8; /* 기본은 시간의 부가 기능 느낌을 주도록 좀 더 연하게 */
+      display: flex;
+      align-items: center;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      box-shadow: none;
+
+      &:hover {
+        color: #002D62; /* 로고 색상 포인트 */
+        background: #f1f5f9; /* hover 시 주변과 자연스럽게 어우러지는 연한 배경 */
+      }
+      
+      &:active {
+        transform: translateY(1px);
+      }
     }
   }
 }

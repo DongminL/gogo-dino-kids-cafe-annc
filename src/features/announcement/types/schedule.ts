@@ -6,3 +6,16 @@ export interface Schedule {
   intervalMinutes: number;
   enabled: boolean;
 }
+
+export type DayType = "weekday" | "holiday";
+
+export interface TimeRange {
+  start: string; // "HH:mm"
+  end: string;   // "HH:mm"
+}
+
+export interface AnnouncementTimeRangeSettings {
+  enabled: boolean;
+  weekday: TimeRange;
+  holiday: TimeRange;
+}

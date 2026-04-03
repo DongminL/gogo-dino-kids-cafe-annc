@@ -3,6 +3,7 @@ import type { Category } from "@/features/announcement/types/category";
 import type { ScheduleType } from "@/features/announcement/types/schedule";
 
 export const STORAGE_KEY = "annc-schedules";
+export const TIME_RANGE_STORAGE_KEY = "annc-time-range";
 
 export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
   {

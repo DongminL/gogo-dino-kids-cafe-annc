@@ -35,6 +35,7 @@ export interface UseUpdaterResult {
 declare global {
   interface Window {
     electronAPI?: {
+      openExternal: (url: string) => void;
       checkForUpdates: () => void;
       downloadUpdate: () => void;
       installUpdate: () => void;

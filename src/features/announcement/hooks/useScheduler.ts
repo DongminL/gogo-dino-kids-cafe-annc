@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
-import type { Schedule } from "@/features/announcement/types/schedule";
+import type { Schedule, AnnouncementTimeRangeSettings, DayType } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS } from "@/constants";
 
 export function shouldFire(schedule: Schedule, hh: number, mm: number): boolean {
@@ -26,15 +26,39 @@ export function shouldFire(schedule: Schedule, hh: number, mm: number): boolean 
   return false;
 }
 
+export function getDayType(date: Date): DayType {
+  const day = date.getDay(); // 0=일, 6=토
+  return day === 0 || day === 6 ? "holiday" : "weekday";
+}
+
+export function isInTimeRange(start: string, end: string, hh: number, mm: number): boolean {
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const current = hh * 60 + mm;
+  return current >= sh * 60 + sm && current <= eh * 60 + em;
+}
+
 export function useScheduler(
   currentTime: Date,
   schedules: Record<string, Schedule>,
+  timeRangeSettings: AnnouncementTimeRangeSettings,
+  effectiveDayType: DayType,
   onFire: (ann: AnnouncementDef) => void
 ): void {
   const schedulesRef = useRef(schedules);
   useEffect(() => {
     schedulesRef.current = schedules;
   }, [schedules]);
+
+  const timeRangeSettingsRef = useRef(timeRangeSettings);
+  useEffect(() => {
+    timeRangeSettingsRef.current = timeRangeSettings;
+  }, [timeRangeSettings]);
+
+  const effectiveDayTypeRef = useRef(effectiveDayType);
+  useEffect(() => {
+    effectiveDayTypeRef.current = effectiveDayType;
+  }, [effectiveDayType]);
 
   const onFireRef = useRef(onFire);
   useEffect(() => {
@@ -50,6 +74,11 @@ export function useScheduler(
     const ss = currentTime.getSeconds();
 
     if (ss !== 0) return;
+
+    if (timeRangeSettingsRef.current.enabled) {
+      const range = timeRangeSettingsRef.current[effectiveDayTypeRef.current];
+      if (!isInTimeRange(range.start, range.end, hh, mm)) return;
+    }
 
     const dayStr = `${currentTime.getFullYear()}-${currentTime.getMonth()}-${currentTime.getDate()}`;
     if (lastDayRef.current !== dayStr) {
