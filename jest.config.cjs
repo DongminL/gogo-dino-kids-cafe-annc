@@ -6,7 +6,7 @@ module.exports = {
   },
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
-    "\\.(css|scss)$": "<rootDir>/src/__mocks__/fileMock.ts",
+    "\\.module\\.(css|scss)$": "<rootDir>/src/__mocks__/cssModuleMock.ts",
   },
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
 };

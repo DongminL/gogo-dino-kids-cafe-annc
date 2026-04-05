@@ -1,5 +1,5 @@
 import React from "react";
-import "./VolumeControl.scss";
+import styles from "./VolumeControl.module.scss";
 
 interface VolumeControlProps {
   volume: number;
@@ -10,8 +10,8 @@ export function VolumeControl(
   { volume, onChange }: VolumeControlProps
 ): React.ReactNode {
   return (
-    <div className="volume-control">
-      <span className="volume-label">볼륨</span>
+    <div className={styles.volumeControl}>
+      <span className={styles.volumeLabel}>볼륨</span>
       <input
         type="range"
         min={0}
@@ -19,9 +19,9 @@ export function VolumeControl(
         step={0.05}
         value={volume}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="volume-slider"
+        className={styles.volumeSlider}
       />
-      <span className="volume-value">{Math.round(volume * 100)}%</span>
+      <span className={styles.volumeValue}>{Math.round(volume * 100)}%</span>
     </div>
   );
 }
