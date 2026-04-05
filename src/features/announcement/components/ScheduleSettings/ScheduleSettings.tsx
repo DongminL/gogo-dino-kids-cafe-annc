@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./ScheduleSettings.scss";
+import clsx from "clsx";
+import styles from "./ScheduleSettings.module.scss";
 import type { Schedule, ScheduleType } from "@/features/announcement/types/schedule";
 import { TimePicker } from "@/components/TimePicker/TimePicker";
 
@@ -46,30 +47,30 @@ export function ScheduleSettings({
   const uiType = isTimeBased ? "time" : "interval";
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">{announcementTitle} 방송 설정</h2>
-          <button className="btn-close-x" onClick={onClose}>&times;</button>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>{announcementTitle} 방송 설정</h2>
+          <button className={styles.btnCloseX} onClick={onClose}>&times;</button>
         </div>
 
-        <div className="settings-panel">
-          <div className="settings-row">
-            <span className="settings-label">자동 재생</span>
-            <label className="toggle-switch">
+        <div className={styles.settingsPanel}>
+          <div className={styles.settingsRow}>
+            <span className={styles.settingsLabel}>자동 재생</span>
+            <label className={styles.toggleSwitch}>
               <input
                 type="checkbox"
                 checked={draft.enabled}
                 onChange={(e) => updateDraft({ enabled: e.target.checked })}
               />
-              <span className="toggle-slider" />
+              <span className={styles.toggleSlider} />
             </label>
           </div>
 
           {draft.enabled && (
             <>
-              <div className="settings-row">
-                <span className="settings-label">재생 유형</span>
+              <div className={styles.settingsRow}>
+                <span className={styles.settingsLabel}>재생 유형</span>
                 <select
                   value={uiType}
                   onChange={(e) => {
@@ -80,7 +81,7 @@ export function ScheduleSettings({
                       updateDraft({ type: "interval" });
                     }
                   }}
-                  className="settings-select"
+                  className={styles.settingsSelect}
                 >
                   <option value="time">시각 설정</option>
                   <option value="interval">반복 간격</option>
@@ -88,8 +89,8 @@ export function ScheduleSettings({
               </div>
 
               {isTimeBased && (
-                <div className="settings-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
-                  <span className="settings-label">재생 시각</span>
+                <div className={styles.settingsRow} style={{ flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
+                  <span className={styles.settingsLabel}>재생 시각</span>
                   <TimePicker
                     mode={draft.type as "once" | "odd-hour" | "even-hour"}
                     hour={hour}
@@ -100,8 +101,8 @@ export function ScheduleSettings({
               )}
 
               {draft.type === "interval" && (
-                <div className="settings-row">
-                  <span className="settings-label">간격 (분)</span>
+                <div className={styles.settingsRow}>
+                  <span className={styles.settingsLabel}>간격 (분)</span>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -119,7 +120,7 @@ export function ScheduleSettings({
                       if (val > 180) val = 180;
                       updateDraft({ intervalMinutes: val });
                     }}
-                    className="settings-input settings-input-number"
+                    className={clsx(styles.settingsInput, styles.settingsInputNumber)}
                   />
                 </div>
               )}
@@ -127,10 +128,10 @@ export function ScheduleSettings({
           )}
         </div>
 
-        <div className="modal-footer">
-          <div className="settings-actions">
-            <button className="btn-cancel" onClick={handleCancel}>취소</button>
-            <button className="btn-confirm" onClick={handleConfirm}>확인</button>
+        <div className={styles.modalFooter}>
+          <div className={styles.settingsActions}>
+            <button className={styles.btnCancel} onClick={handleCancel}>취소</button>
+            <button className={styles.btnConfirm} onClick={handleConfirm}>확인</button>
           </div>
         </div>
       </div>

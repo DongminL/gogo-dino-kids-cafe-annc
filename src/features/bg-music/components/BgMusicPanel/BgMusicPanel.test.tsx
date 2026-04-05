@@ -372,7 +372,7 @@ describe("BgMusicPanel - 프로그레스 바", () => {
 
     act(() => { capturedCallback!(60); });
 
-    const progressFill = container.querySelector(".upload-progress-fill") as HTMLElement;
+    const progressFill = container.querySelector(".uploadProgressFill") as HTMLElement;
     expect(progressFill.style.width).toBe("60%");
   });
 
@@ -391,7 +391,7 @@ describe("BgMusicPanel - 프로그레스 바", () => {
 
     await act(async () => { resolveUpload(); });
 
-    const progressFill = container.querySelector(".upload-progress-fill") as HTMLElement;
+    const progressFill = container.querySelector(".uploadProgressFill") as HTMLElement;
     expect(progressFill.style.width).toBe("100%");
   });
 
@@ -482,7 +482,7 @@ describe("BgMusicPanel - 트랙 목록", () => {
         })}
       />
     );
-    const items = container.querySelectorAll(".bg-music-track-item");
+    const items = container.querySelectorAll(".bgMusicTrackItem");
     expect(items[0]).toHaveClass("bg-music-track-item--playing");
     expect(items[1]).not.toHaveClass("bg-music-track-item--playing");
   });

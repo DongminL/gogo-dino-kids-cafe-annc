@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import "./GlobalBottomBar.scss";
+import clsx from "clsx";
+import styles from "./GlobalBottomBar.module.scss";
 import {
   SkipBack,
   SkipForward,
@@ -105,20 +106,24 @@ export function GlobalBottomBar({
   }, [currentTrack]);
 
   return (
-    <div className="global-bottom-bar">
-      <div className="player-info">
+    <div className={styles.globalBottomBar}>
+      <div className={styles.playerInfo}>
         <div
-          className={`track-name-wrapper ${isOverflowing ? "is-overflowing" : ""} ${shouldAnimate ? "should-animate" : ""}`}
+          className={clsx(
+            styles.trackNameWrapper,
+            isOverflowing && styles.isOverflowing,
+            shouldAnimate && styles.shouldAnimate
+          )}
           ref={containerRef}
           title={currentTrack?.name}
         >
-          <div className="track-name" ref={textRef}>
+          <div className={styles.trackName} ref={textRef}>
             {currentTrack ? currentTrack.name : "재생 중인 배경 음악이 없습니다"}
           </div>
         </div>
         {onNavigateToPlayingPlaylist && (
           <button
-            className="go-to-playlist-btn"
+            className={styles.goToPlaylistBtn}
             onClick={onNavigateToPlayingPlaylist}
             title="재생 중인 플레이리스트로 이동"
           >
@@ -127,18 +132,18 @@ export function GlobalBottomBar({
         )}
       </div>
 
-      <div className="player-controls">
-        <div className="progress-bar-container">
-          <span className="time-text">{formatDuration(progress.current)}</span>
-          <div className="seek-bar-wrapper">
-            <div className="seek-bar-rail" />
+      <div className={styles.playerControls}>
+        <div className={styles.progressBarContainer}>
+          <span className={styles.timeText}>{formatDuration(progress.current)}</span>
+          <div className={styles.seekBarWrapper}>
+            <div className={styles.seekBarRail} />
             <div
-              className="seek-bar-fill"
+              className={styles.seekBarFill}
               style={{ width: `${progress.duration ? (progress.current / progress.duration) * 100 : 0}%` }}
             />
             <input
               type="range"
-              className="seek-bar"
+              className={styles.seekBar}
               min={0}
               max={progress.duration || 0}
               step={0.5}
@@ -147,23 +152,23 @@ export function GlobalBottomBar({
               onChange={(e) => onSeek(Number(e.target.value))}
             />
           </div>
-          <span className="time-text">-{formatDuration(Math.max(0, progress.duration - progress.current))}</span>
+          <span className={styles.timeText}>-{formatDuration(Math.max(0, progress.duration - progress.current))}</span>
         </div>
 
-        <div className="buttons">
+        <div className={styles.buttons}>
           <button
-            className={`secondary-btn ${autoplay ? "active" : ""}`}
+            className={clsx(styles.secondaryBtn, autoplay && styles.active)}
             onClick={onToggleAutoplay}
             title="자동 재생"
           >
             <Zap size={16} fill={autoplay ? "currentColor" : "none"} />
           </button>
 
-          <button className="transport-btn" onClick={onPrev} title="이전 곡" disabled={!currentTrack}>
+          <button className={styles.transportBtn} onClick={onPrev} title="이전 곡" disabled={!currentTrack}>
             <SkipBack size={20} fill="currentColor" />
           </button>
 
-          <button className="play-btn" onClick={onTogglePlay} title={isPlaying ? "일시정지" : "재생"} disabled={!currentTrack}>
+          <button className={styles.playBtn} onClick={onTogglePlay} title={isPlaying ? "일시정지" : "재생"} disabled={!currentTrack}>
             {isPlaying ? (
               <Pause size={24} fill="currentColor" />
             ) : (
@@ -171,12 +176,12 @@ export function GlobalBottomBar({
             )}
           </button>
 
-          <button className="transport-btn" onClick={onNext} title="다음 곡" disabled={!currentTrack}>
+          <button className={styles.transportBtn} onClick={onNext} title="다음 곡" disabled={!currentTrack}>
             <SkipForward size={20} fill="currentColor" />
           </button>
 
           <button
-            className={`secondary-btn ${loop ? "active" : ""}`}
+            className={clsx(styles.secondaryBtn, loop && styles.active)}
             onClick={onToggleLoop}
             title="반복 재생"
           >
@@ -185,12 +190,12 @@ export function GlobalBottomBar({
         </div>
       </div>
 
-      <div className="volume-controls">
-        <div className="volume-group" title="안내 방송 볼륨">
-          <div className="icon-badge annc">
+      <div className={styles.volumeControls}>
+        <div className={styles.volumeGroup} title="안내 방송 볼륨">
+          <div className={clsx(styles.iconBadge, styles.annc)}>
             <Megaphone size={14} />
           </div>
-          <div className="slider-container">
+          <div className={styles.sliderContainer}>
             <input
               type="range"
               min={0}
@@ -201,14 +206,14 @@ export function GlobalBottomBar({
               onChange={(e) => onSetAnncVolume(Number(e.target.value))}
             />
           </div>
-          <span className="volume-val">{Math.round(anncVolume * 100)}</span>
+          <span className={styles.volumeVal}>{Math.round(anncVolume * 100)}</span>
         </div>
 
-        <div className="volume-group" title="배경 음악 볼륨">
-          <div className="icon-badge bgm">
+        <div className={styles.volumeGroup} title="배경 음악 볼륨">
+          <div className={clsx(styles.iconBadge, styles.bgm)}>
             <Music size={14} />
           </div>
-          <div className="slider-container">
+          <div className={styles.sliderContainer}>
             <input
               type="range"
               min={0}
@@ -219,7 +224,7 @@ export function GlobalBottomBar({
               onChange={(e) => onSetBgmVolume(Number(e.target.value))}
             />
           </div>
-          <span className="volume-val">{Math.round(bgmVolume * 100)}</span>
+          <span className={styles.volumeVal}>{Math.round(bgmVolume * 100)}</span>
         </div>
       </div>
     </div>

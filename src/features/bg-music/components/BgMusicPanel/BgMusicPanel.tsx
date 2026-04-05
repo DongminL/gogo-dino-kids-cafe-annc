@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
+import clsx from "clsx";
 import { GripVertical, Trash2, Edit2, Check, X, RotateCcw } from "lucide-react";
-import "./BgMusicPanel.scss";
+import styles from "./BgMusicPanel.module.scss";
 import type { Track, Playlist } from "@/features/bg-music/types/bgMusic";
 import { stripExtension } from "@/utils";
 
@@ -102,7 +103,7 @@ export function BgMusicPanel({
       // If clicking inside the edit area, or on the modal, don't cancel
       const target = e.target as HTMLElement;
       const isInside = editAreaRef.current?.contains(target);
-      const isModal = target.closest(".bg-music-confirm-modal");
+      const isModal = target.closest("[data-confirm-modal]");
       if (!isInside && !isModal) {
         setIsEditing(false);
         setDraggedIndex(null);
@@ -183,7 +184,7 @@ export function BgMusicPanel({
     setShowNewPlaylistInput(false);
   };
 
-  type DeletionTarget = 
+  type DeletionTarget =
     | { type: "playlist"; playlistId: string; name: string }
     | { type: "track"; trackId: string; name: string }
     | { type: "rfp"; playlistId: string; trackId: string; index: number; name: string }
@@ -195,7 +196,7 @@ export function BgMusicPanel({
 
   const triggerConfirm = (target: DeletionTarget) => {
     if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current);
-    
+
     // If clicking same thing, toggle off
     if (confirmDelete && confirmDelete.type === target.type) {
       let isSame = false;
@@ -208,13 +209,13 @@ export function BgMusicPanel({
       } else if (target.type === "edit-rfp" && confirmDelete.type === "edit-rfp") {
         isSame = target.index === confirmDelete.index;
       }
-      
+
       if (isSame) {
         setConfirmDelete(null);
         return;
       }
     }
-    
+
     setConfirmDelete(target);
     confirmTimerRef.current = setTimeout(() => {
       setConfirmDelete(null);
@@ -304,20 +305,20 @@ export function BgMusicPanel({
   const isEmpty = tracksToDisplay.length === 0 && visibleUploads.length === 0;
 
   return (
-    <section className="bg-music-panel">
-      <div className="bg-music-layout">
+    <section className={styles.bgMusicPanel}>
+      <div className={styles.bgMusicLayout}>
         {/* Left Side: Management (Playlists) */}
-        <div className="bg-music-sidebar-content">
-          <div className="bg-music-section">
-            <div className="bg-music-section-header">
+        <div className={styles.bgMusicSidebarContent}>
+          <div className={styles.bgMusicSection}>
+            <div className={styles['bg-music-section-header']}>
               <h3>플레이리스트</h3>
             </div>
 
-            <div className="bg-music-add-playlist-area">
+            <div className={styles.bgMusicAddPlaylistArea}>
               {showNewPlaylistInput ? (
-                <div className="bg-music-add-form animate-in">
+                <div className={clsx(styles.bgMusicAddForm, styles.animateIn)}>
                   <input
-                    className="bg-music-input-field"
+                    className={styles.bgMusicInputField}
                     type="text"
                     placeholder="플레이리스트 이름 입력"
                     value={newPlaylistName}
@@ -331,15 +332,15 @@ export function BgMusicPanel({
                     }}
                     autoFocus
                   />
-                  <div className="bg-music-add-form-footer">
-                    <button 
-                      className="bg-music-btn bg-music-btn--primary bg-music-btn--sm"
+                  <div className={styles['bg-music-add-form-footer']}>
+                    <button
+                      className={clsx(styles.bgMusicBtn, styles['bg-music-btn--primary'], styles['bg-music-btn--sm'])}
                       onClick={handleCreatePlaylist}
                     >
                       확인
                     </button>
-                    <button 
-                      className="bg-music-btn bg-music-btn--ghost bg-music-btn--sm"
+                    <button
+                      className={clsx(styles.bgMusicBtn, styles['bg-music-btn--ghost'], styles['bg-music-btn--sm'])}
                       onClick={() => { setShowNewPlaylistInput(false); setNewPlaylistName(""); }}
                     >
                       취소
@@ -348,38 +349,42 @@ export function BgMusicPanel({
                 </div>
               ) : (
                 <button
-                  className="bg-music-playlist-add-trigger"
+                  className={styles.bgMusicPlaylistAddTrigger}
                   onClick={() => setShowNewPlaylistInput(true)}
                 >
-                  <span className="icon">+</span>
+                  <span className={styles.icon}>+</span>
                   <span>새 플레이리스트</span>
                 </button>
               )}
             </div>
 
-            <div className="bg-music-playlist-list">
-              <div 
-                className={`bg-music-playlist-item ${currentPlaylistId === null ? 'active' : ''}`}
+            <div className={styles.bgMusicPlaylistList}>
+              <div
+                className={clsx(styles.bgMusicPlaylistItem, currentPlaylistId === null && styles.active)}
                 onClick={() => onSetCurrentPlaylist(null)}
               >
-                <span className="name">전체 음악 목록</span>
-                <span className="count">{tracks.length}곡</span>
+                <span className={styles.name}>전체 음악 목록</span>
+                <span className={styles.count}>{tracks.length}곡</span>
               </div>
-              <div className="bg-music-playlist-divider" />
+              <div className={styles.bgMusicPlaylistDivider} />
               {playlists.length === 0 ? (
-                <div className="bg-music-empty-small">플레이리스트가 없습니다</div>
+                <div className={styles.bgMusicEmptySmall}>플레이리스트가 없습니다</div>
               ) : (
                 playlists.map(p => {
                   return (
-                    <div 
-                      key={p.id} 
-                      className={`bg-music-playlist-item ${currentPlaylistId === p.id ? 'active' : ''} ${confirmDelete?.type === 'playlist' && confirmDelete.playlistId === p.id ? 'confirm-delete' : ''}`}
+                    <div
+                      key={p.id}
+                      className={clsx(
+                        styles.bgMusicPlaylistItem,
+                        currentPlaylistId === p.id && styles.active,
+                        confirmDelete?.type === 'playlist' && confirmDelete.playlistId === p.id && styles['confirm-delete']
+                      )}
                       onClick={() => onSetCurrentPlaylist(p.id)}
                     >
-                      <span className="name">{p.name}</span>
-                      <span className="count">{p.trackIds.length}곡</span>
-                      <button 
-                        className="delete-btn"
+                      <span className={styles.name}>{p.name}</span>
+                      <span className={styles.count}>{p.trackIds.length}곡</span>
+                      <button
+                        className={styles.deleteBtn}
                         title="목록 삭제"
                         onClick={(e) => { e.stopPropagation(); triggerConfirm({ type: "playlist", playlistId: p.id, name: p.name }); }}
                       >
@@ -394,16 +399,16 @@ export function BgMusicPanel({
         </div>
 
         {/* Right Side: Detail Tracks */}
-        <div className="bg-music-main-content" ref={editAreaRef}>
-          <div className="bg-music-section bg-music-section--full">
-            <div className="bg-music-section-header">
+        <div className={styles.bgMusicMainContent} ref={editAreaRef}>
+          <div className={clsx(styles.bgMusicSection, styles['bg-music-section--full'])}>
+            <div className={styles['bg-music-section-header']}>
               <h3>{currentPlaylist ? `${currentPlaylist.name} 트랙` : "배경 음악 목록"}</h3>
-              
-              <div className="header-actions">
+
+              <div className={styles.headerActions}>
 
                 {!isEditing && (
-                  <button 
-                    className="bg-music-btn bg-music-btn--ghost bg-music-btn--sm"
+                  <button
+                    className={clsx(styles.bgMusicBtn, styles['bg-music-btn--ghost'], styles['bg-music-btn--sm'])}
                     style={{ marginRight: '8px' }}
                     onClick={handleStartEditing}
                   >
@@ -414,15 +419,15 @@ export function BgMusicPanel({
 
                 {isEditing && (
                   <div style={{ display: 'flex', gap: '8px', marginRight: '16px' }}>
-                    <button 
-                      className="bg-music-btn bg-music-btn--primary bg-music-btn--sm"
+                    <button
+                      className={clsx(styles.bgMusicBtn, styles['bg-music-btn--primary'], styles['bg-music-btn--sm'])}
                       onClick={handleFinishEditing}
                     >
                       <Check size={14} style={{ marginRight: '4px' }} />
                       완료
                     </button>
-                    <button 
-                      className="bg-music-btn bg-music-btn--ghost bg-music-btn--sm"
+                    <button
+                      className={clsx(styles.bgMusicBtn, styles['bg-music-btn--ghost'], styles['bg-music-btn--sm'])}
                       onClick={handleCancelEditing}
                     >
                       <X size={14} style={{ marginRight: '4px' }} />
@@ -430,7 +435,7 @@ export function BgMusicPanel({
                     </button>
                   </div>
                 )}
-                
+
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -441,7 +446,7 @@ export function BgMusicPanel({
                 />
                 {!isEditing && (
                   <button
-                    className="bg-music-btn bg-music-btn--primary bg-music-btn--sm"
+                    className={clsx(styles.bgMusicBtn, styles['bg-music-btn--primary'], styles['bg-music-btn--sm'])}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     + 배경 음악 파일 추가
@@ -450,10 +455,10 @@ export function BgMusicPanel({
               </div>
             </div>
 
-            <div className="bg-music-track-list">
+            <div className={styles.bgMusicTrackList}>
               <>
                 {isEmpty && (
-                  <div className="bg-music-empty">
+                  <div className={styles.bgMusicEmpty}>
                     {currentPlaylist ? "이 플레이리스트에는 곡이 없습니다." : "등록된 곡이 없습니다."}<br/>
                     파일 추가 버튼을 눌러 음악을 업로드하세요.
                   </div>
@@ -461,40 +466,48 @@ export function BgMusicPanel({
                 {visibleUploads.map((item) => (
                       <div
                         key={item.uploadId}
-                        className={`bg-music-track-item bg-music-track-item--uploading${item.status === "error" ? " bg-music-track-item--upload-error" : ""}${item.status === "done" ? " bg-music-track-item--upload-done" : ""}`}
+                        className={clsx(
+                          styles.bgMusicTrackItem,
+                          styles['bg-music-track-item--uploading'],
+                          item.status === "error" && styles['bg-music-track-item--upload-error'],
+                          item.status === "done" && styles['bg-music-track-item--upload-done']
+                        )}
                       >
-                        <span className="bg-music-track-item__num">…</span>
-                        <div className="bg-music-track-item__upload-info">
-                          <div className="upload-name-row">
-                            <span className="bg-music-track-item__name">{item.fileName}</span>
+                        <span className={styles['bg-music-track-item__num']}>…</span>
+                        <div className={styles['bg-music-track-item__upload-info']}>
+                          <div className={styles.uploadNameRow}>
+                            <span className={styles['bg-music-track-item__name']}>{item.fileName}</span>
                             {item.status === "uploading" && (
-                              <span className="upload-percent">{item.progress}%</span>
+                              <span className={styles.uploadPercent}>{item.progress}%</span>
                             )}
                             {item.status === "error" && (
-                              <span className="upload-error-label">{item.error}</span>
+                              <span className={styles.uploadErrorLabel}>{item.error}</span>
                             )}
                             {item.status === "done" && (
-                              <span className="upload-done-label">완료</span>
+                              <span className={styles.uploadDoneLabel}>완료</span>
                             )}
                           </div>
-                          <div className="upload-progress-bar">
+                          <div className={styles.uploadProgressBar}>
                             <div
-                              className={`upload-progress-fill upload-progress-fill--${item.status}`}
+                              className={clsx(
+                                styles.uploadProgressFill,
+                                styles[`upload-progress-fill--${item.status}`]
+                              )}
                               style={{ width: `${item.progress}%` }}
                             />
                           </div>
                         </div>
                         {item.status === "error" && (
-                          <div className="bg-music-track-item__actions" style={{ opacity: 1 }}>
+                          <div className={styles['bg-music-track-item__actions']} style={{ opacity: 1 }}>
                             <button
-                              className="bg-music-btn bg-music-btn--icon bg-music-btn--sm"
+                              className={clsx(styles.bgMusicBtn, styles['bg-music-btn--icon'], styles['bg-music-btn--sm'])}
                               title="재시도"
                               onClick={() => handleRetryUpload(item.uploadId)}
                             >
                               <RotateCcw size={14} />
                             </button>
                             <button
-                              className="bg-music-btn bg-music-btn--icon bg-music-btn--sm bg-music-btn--danger"
+                              className={clsx(styles.bgMusicBtn, styles['bg-music-btn--icon'], styles['bg-music-btn--sm'], styles['bg-music-btn--danger'])}
                               title="취소"
                               onClick={() => handleCancelUpload(item.uploadId)}
                             >
@@ -511,13 +524,20 @@ export function BgMusicPanel({
                   const isConfirmingRfp = confirmDelete?.type === 'rfp' && confirmDelete.playlistId === currentPlaylist?.id && confirmDelete.index === index;
                   const isConfirmingEdit = confirmDelete?.type === 'edit-rfp' && confirmDelete.index === index;
                   const isAnyConfirming = isConfirmingLibrary || isConfirmingRfp || isConfirmingEdit;
-                  
+
                   const isTrackPlaying = index === currentTrackIndex && isPlaying && (currentPlaylist ? currentPlaylist.id === playingPlaylistId : playingPlaylistId === null);
-                  
+
                   return (
                     <div
                       key={currentPlaylist ? `track-p-${currentPlaylist.id}-${trackId}-${index}` : `track-lib-${trackId}`}
-                      className={`bg-music-track-item${isTrackPlaying ? " bg-music-track-item--playing" : ""}${isAnyConfirming ? " bg-music-track-item--confirming" : ""}${showPlaylistMenu === trackId ? " bg-music-track-item--menu-open" : ""}${isEditing ? " bg-music-track-item--editing" : ""}${isEditing && draggedIndex === index ? " bg-music-track-item--dragged" : ""}`}
+                      className={clsx(
+                        styles.bgMusicTrackItem,
+                        isTrackPlaying && styles['bg-music-track-item--playing'],
+                        isAnyConfirming && styles['bg-music-track-item--confirming'],
+                        showPlaylistMenu === trackId && styles['bg-music-track-item--menu-open'],
+                        isEditing && styles['bg-music-track-item--editing'],
+                        isEditing && draggedIndex === index && styles['bg-music-track-item--dragged']
+                      )}
                       onDoubleClick={() => !isAnyConfirming && !isEditing && onPlay(index)}
                       draggable={isEditing}
                       onDragStart={isEditing ? (e) => handleDragStart(e, index) : undefined}
@@ -525,18 +545,18 @@ export function BgMusicPanel({
                       onDragEnd={isEditing ? handleDragEnd : undefined}
                     >
                     {isEditing ? (
-                      <div className="bg-music-track-item__handle">
+                      <div className={styles['bg-music-track-item__handle']}>
                         <GripVertical size={16} />
                       </div>
                     ) : (
-                      <span className="bg-music-track-item__num">{index + 1}</span>
+                      <span className={styles['bg-music-track-item__num']}>{index + 1}</span>
                     )}
-                    <span className="bg-music-track-item__name">{track?.name ?? trackId}</span>
-                    
-                    <div className="bg-music-track-item__actions">
+                    <span className={styles['bg-music-track-item__name']}>{track?.name ?? trackId}</span>
+
+                    <div className={styles['bg-music-track-item__actions']}>
                       {isEditing ? (
-                        <button 
-                          className="bg-music-btn bg-music-btn--icon bg-music-btn--sm bg-music-btn--danger-text"
+                        <button
+                          className={clsx(styles.bgMusicBtn, styles['bg-music-btn--icon'], styles['bg-music-btn--sm'], styles['bg-music-btn--danger-text'])}
                           title="삭제"
                           onClick={() => handleRemoveTrackWhileEditing(index)}
                         >
@@ -546,42 +566,42 @@ export function BgMusicPanel({
                         <>
                           {currentPlaylist ? (
                             <button
-                              className="bg-music-btn bg-music-btn--icon bg-music-btn--sm"
+                              className={clsx(styles.bgMusicBtn, styles['bg-music-btn--icon'], styles['bg-music-btn--sm'])}
                               title="플레이리스트에서 제거"
-                              onClick={() => triggerConfirm({ 
-                                type: "rfp", 
-                                playlistId: currentPlaylist.id, 
-                                trackId: trackId, 
-                                index, 
-                                name: track?.name ?? trackId 
+                              onClick={() => triggerConfirm({
+                                type: "rfp",
+                                playlistId: currentPlaylist.id,
+                                trackId: trackId,
+                                index,
+                                name: track?.name ?? trackId
                               })}
                             >
                               ✕
                             </button>
                           ) : (
                             <>
-                              <div className="bg-music-add-to-playlist-container">
-                                <button 
-                                  className={`bg-music-btn bg-music-btn--icon bg-music-btn--sm ${showPlaylistMenu === trackId ? 'active' : ''}`}
+                              <div className={styles.bgMusicAddToPlaylistContainer}>
+                                <button
+                                  className={clsx(styles.bgMusicBtn, styles['bg-music-btn--icon'], styles['bg-music-btn--sm'], showPlaylistMenu === trackId && styles.active)}
                                   title="플레이리스트에 추가"
                                   onClick={(e) => { e.stopPropagation(); setShowPlaylistMenu(showPlaylistMenu === trackId ? null : trackId); }}
                                 >
                                   +
                                 </button>
                                 {showPlaylistMenu === trackId && (
-                                  <div className="bg-music-playlist-menu" onClick={(e) => e.stopPropagation()}>
-                                    <div className="menu-header">추가할 플레이리스트 선택</div>
+                                  <div className={styles.bgMusicPlaylistMenu} onClick={(e) => e.stopPropagation()}>
+                                    <div className={styles.menuHeader}>추가할 플레이리스트 선택</div>
                                     {playlists.length === 0 ? (
-                                      <div className="menu-item disabled">플레이리스트가 없습니다</div>
+                                      <div className={clsx(styles.menuItem, styles.disabled)}>플레이리스트가 없습니다</div>
                                     ) : (
                                       playlists.map(p => (
-                                        <button 
-                                          key={p.id} 
-                                          className="menu-item"
-                                          onClick={(e) => { 
-                                            e.stopPropagation(); 
-                                            onAddToPlaylist(p.id, trackId); 
-                                            setShowPlaylistMenu(null); 
+                                        <button
+                                          key={p.id}
+                                          className={styles.menuItem}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            onAddToPlaylist(p.id, trackId);
+                                            setShowPlaylistMenu(null);
                                           }}
                                         >
                                           {p.name}
@@ -591,8 +611,8 @@ export function BgMusicPanel({
                                   </div>
                                 )}
                               </div>
-                              <button 
-                                className="bg-music-btn bg-music-btn--icon bg-music-btn--sm bg-music-btn--danger"
+                              <button
+                                className={clsx(styles.bgMusicBtn, styles['bg-music-btn--icon'], styles['bg-music-btn--sm'], styles['bg-music-btn--danger'])}
                                 title="파일 삭제"
                                 onClick={() => triggerConfirm({ type: "track", trackId: trackId, name: track?.name ?? trackId })}
                               >
@@ -614,13 +634,13 @@ export function BgMusicPanel({
 
       {/* Confirmation Modal */}
       {confirmDelete && (
-        <div className="bg-music-confirm-modal" onClick={() => setConfirmDelete(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className={styles.bgMusicConfirmModal} data-confirm-modal onClick={() => setConfirmDelete(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
               <h3>알림</h3>
             </div>
-            <div className="modal-divider" />
-            <div className="modal-body">
+            <div className={styles.modalDivider} />
+            <div className={styles.modalBody}>
               {confirmDelete.type === "playlist" ? (
                 <>플레이리스트 <strong>"{confirmDelete.name}"</strong>를 삭제하시겠습니까?</>
               ) : confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? (
@@ -629,10 +649,10 @@ export function BgMusicPanel({
                 <>배경 음악 파일 <strong>"{confirmDelete.name}"</strong>을(를) 영구적으로 삭제하시겠습니까?</>
               )}
             </div>
-            <div className="modal-divider" />
-            <div className="modal-footer">
-              <button 
-                className="bg-music-btn bg-music-btn--danger-filled"
+            <div className={styles.modalDivider} />
+            <div className={styles.modalFooter}>
+              <button
+                className={clsx(styles.bgMusicBtn, styles['bg-music-btn--danger-filled'])}
                 onClick={() => {
                   if (confirmDelete.type === "playlist") {
                     actualDeletePlaylist(confirmDelete.playlistId);
@@ -647,8 +667,8 @@ export function BgMusicPanel({
               >
                 {confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? "제거" : "삭제"}
               </button>
-              <button 
-                className="bg-music-btn"
+              <button
+                className={styles.bgMusicBtn}
                 onClick={() => setConfirmDelete(null)}
               >
                 취소

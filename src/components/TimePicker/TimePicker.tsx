@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
-import "./TimePicker.scss";
+import clsx from "clsx";
+import styles from "./TimePicker.module.scss";
 
 interface TimePickerProps {
   mode: "once" | "odd-hour" | "even-hour";
@@ -23,38 +24,38 @@ export function TimePicker({ mode, hour, minute, onChange }: TimePickerProps) {
     { label: "짝수", value: "even-hour" },
   ], []);
 
-  const hourOptions: WheelOption[] = useMemo(() => 
+  const hourOptions: WheelOption[] = useMemo(() =>
     Array.from({ length: 24 }, (_, i) => {
       const val = String(i).padStart(2, "0");
       return { label: val, value: val };
     }), []);
 
-  const minuteOptions: WheelOption[] = useMemo(() => 
+  const minuteOptions: WheelOption[] = useMemo(() =>
     Array.from({ length: 60 }, (_, i) => {
       const val = String(i).padStart(2, "0");
       return { label: val, value: val };
     }), []);
 
   return (
-    <div className="shadcn-time-picker">
-      <div className="picker-container">
-        
-        <div className="picker-column">
-          <div className="column-label">반복</div>
-          <Wheel 
-            options={modeOptions} 
-            value={mode} 
-            onChange={(m) => onChange(m as "once" | "odd-hour" | "even-hour", hour, minute)} 
+    <div className={styles.shadcnTimePicker}>
+      <div className={styles.pickerContainer}>
+
+        <div className={styles.pickerColumn}>
+          <div className={styles.columnLabel}>반복</div>
+          <Wheel
+            options={modeOptions}
+            value={mode}
+            onChange={(m) => onChange(m as "once" | "odd-hour" | "even-hour", hour, minute)}
           />
         </div>
 
-        <div className="picker-column">
-          <div className="column-label">시간</div>
+        <div className={styles.pickerColumn}>
+          <div className={styles.columnLabel}>시간</div>
           {mode === "once" ? (
-            <Wheel 
-              options={hourOptions} 
-              value={hour} 
-              onChange={(h) => onChange(mode, h, minute)} 
+            <Wheel
+              options={hourOptions}
+              value={hour}
+              onChange={(h) => onChange(mode, h, minute)}
             />
           ) : (
             <Wheel
@@ -64,20 +65,20 @@ export function TimePicker({ mode, hour, minute, onChange }: TimePickerProps) {
             />
           )}
         </div>
-        
-        <div className="picker-separator">:</div>
-        
-        <div className="picker-column">
-          <div className="column-label">분</div>
-          <Wheel 
-            options={minuteOptions} 
-            value={minute} 
-            onChange={(m) => onChange(mode, hour, m)} 
+
+        <div className={styles.pickerSeparator}>:</div>
+
+        <div className={styles.pickerColumn}>
+          <div className={styles.columnLabel}>분</div>
+          <Wheel
+            options={minuteOptions}
+            value={minute}
+            onChange={(m) => onChange(mode, hour, m)}
           />
         </div>
 
         {/* The horizontal selection indicator lines */}
-        <div className="selection-highlight" />
+        <div className={styles.selectionHighlight} />
       </div>
     </div>
   );
@@ -95,7 +96,7 @@ export function Wheel({ options, value, onChange }: WheelProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const wheelAccum = useRef(0);
   const isTransitioning = useRef(false);
-  
+
   // To handle infinite scroll illusion, we repeat options
   const REPEAT_COUNT = 21; // Odd number for center alignment
   const extendedOptions = useMemo(() => {
@@ -133,9 +134,9 @@ export function Wheel({ options, value, onChange }: WheelProps) {
       if (isTransitioning.current) return;
 
       wheelAccum.current += e.deltaY;
-      
+
       // Sensitivity Threshold: Higher = less sensitive
-      const THRESHOLD = 60; 
+      const THRESHOLD = 60;
 
       if (Math.abs(wheelAccum.current) >= THRESHOLD) {
         const direction = wheelAccum.current > 0 ? 1 : -1;
@@ -165,11 +166,11 @@ export function Wheel({ options, value, onChange }: WheelProps) {
   const handleScroll = () => {
     if (!scrollRef.current) return;
     setIsScrolling(true);
-    
+
     const scrollTop = scrollRef.current.scrollTop;
     const rawIndex = Math.round(scrollTop / ITEM_HEIGHT);
     const normalizedIndex = rawIndex % options.length;
-    
+
     if (normalizedIndex !== activeIndex) {
       setActiveIndex(normalizedIndex);
     }
@@ -181,7 +182,7 @@ export function Wheel({ options, value, onChange }: WheelProps) {
 
     const scrollTop = scrollRef.current.scrollTop;
     const rawIndex = Math.round(scrollTop / ITEM_HEIGHT);
-    
+
     // Snap to item (backup for touch scroll)
     if (!isTransitioning.current) {
       scrollRef.current.scrollTo({
@@ -215,20 +216,18 @@ export function Wheel({ options, value, onChange }: WheelProps) {
   };
 
   return (
-    <div 
-      className={`wheel-scroll-view ${isScrolling ? "scrolling" : ""}`}
+    <div
+      className={clsx(styles.wheelScrollView, isScrolling && styles.scrolling)}
       ref={scrollRef}
       onScroll={onScroll}
     >
-      <div className="wheel-list">
+      <div className={styles.wheelList}>
         {extendedOptions.map((opt, i) => {
           const isSelected = (i % options.length) === activeIndex;
-          // Calculate distance from center for subtle scaling effect
-          // This is a bit hard with pure CSS during scroll but we can try
           return (
-            <div 
-              key={`${i}-${opt.value}`} 
-              className={`wheel-item ${isSelected ? "active" : ""}`}
+            <div
+              key={`${i}-${opt.value}`}
+              className={clsx(styles.wheelItem, isSelected && styles.active)}
               onClick={() => {
                 if (scrollRef.current) {
                     scrollRef.current.scrollTo({

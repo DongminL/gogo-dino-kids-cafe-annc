@@ -1,5 +1,6 @@
 import React from "react";
-import "./AnnouncementCard.scss";
+import clsx from "clsx";
+import styles from "./AnnouncementCard.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Schedule } from "@/features/announcement/types/schedule";
 import { getScheduleLabel } from "@/utils";
@@ -30,11 +31,11 @@ export function AnnouncementCard({
   const isScheduleActive = schedule.enabled;
 
   return (
-    <div className={`announcement-card${isPlaying ? " playing" : ""}`}>
-      <div className="card-header">
-        <div className="announcement-title">{ann.title}</div>
+    <div className={clsx(styles.announcementCard, isPlaying && styles.playing)}>
+      <div className={styles.cardHeader}>
+        <div className={styles.announcementTitle}>{ann.title}</div>
         <button
-          className={`settings-toggle${isSettingsOpen ? " active" : ""}`}
+          className={clsx(styles.settingsToggle, isSettingsOpen && styles.active)}
           onClick={onToggleSettings}
           title="스케줄 설정"
         >
@@ -42,8 +43,8 @@ export function AnnouncementCard({
         </button>
       </div>
 
-      <div className="schedule-info">
-        <span className={`schedule-badge${isScheduleActive ? " active" : ""}`}>
+      <div className={styles.scheduleInfo}>
+        <span className={clsx(styles.scheduleBadge, isScheduleActive && styles.active)}>
           {getScheduleLabel(schedule)}
         </span>
       </div>
@@ -56,13 +57,13 @@ export function AnnouncementCard({
         />
       )}
 
-      <div className="card-actions">
+      <div className={styles.cardActions}>
         {isPlaying ? (
-          <button className="stop-button" onClick={onStop}>
+          <button className={styles.stopButton} onClick={onStop}>
             &#9632; 정지
           </button>
         ) : (
-          <button className="play-button" onClick={onPlay}>
+          <button className={styles.playButton} onClick={onPlay}>
             &#9654; 재생
           </button>
         )}
