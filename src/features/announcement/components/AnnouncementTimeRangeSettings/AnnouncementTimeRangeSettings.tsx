@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
-import "./AnnouncementTimeRangeSettings.scss";
+import clsx from "clsx";
+import styles from "./AnnouncementTimeRangeSettings.module.scss";
 import type { AnnouncementTimeRangeSettings as ISettings, DayType, TimeRange } from "@/features/announcement/types/schedule";
 import { Wheel } from "@/components/TimePicker/TimePicker";
 import type { WheelOption } from "@/components/TimePicker/TimePicker";
@@ -75,22 +76,22 @@ export function AnnouncementTimeRangeSettings({
     const isActive = activePicker?.dayType === dayType && activePicker?.field === field;
 
     return (
-      <div className="time-box-container">
-        <span className="time-block-label">{label}</span>
+      <div className={styles.timeBoxContainer}>
+        <span className={styles.timeBlockLabel}>{label}</span>
         <div
-          className={`time-display-box ${isActive ? 'active' : ''}`}
+          className={clsx(styles.timeDisplayBox, isActive && styles.active)}
           onClick={(e) => {
             e.stopPropagation();
             togglePicker(dayType, field);
           }}
         >
-          <span className="time-text">{value}</span>
-          <span className="clock-icon"><Clock size={18} strokeWidth={2.5} /></span>
+          <span className={styles.timeText}>{value}</span>
+          <span className={styles.clockIcon}><Clock size={18} strokeWidth={2.5} /></span>
         </div>
 
         {isActive && (
           <div
-            className="time-dropdown-wheels"
+            className={styles.timeDropdownWheels}
             onClick={(e) => e.stopPropagation()} // Prevent close when scrolling wheels
           >
             <Wheel
@@ -98,7 +99,7 @@ export function AnnouncementTimeRangeSettings({
               value={h}
               onChange={(newH) => updateRange(dayType, field, `${newH}:${m}`)}
             />
-            <span className="wheel-colon">:</span>
+            <span className={styles.wheelColon}>:</span>
             <Wheel
               options={MINUTE_OPTIONS}
               value={m}
@@ -112,71 +113,71 @@ export function AnnouncementTimeRangeSettings({
 
   const renderTimeRangeRows = (dayType: DayType) => {
     return (
-      <div className="time-range-compact">
+      <div className={styles.timeRangeCompact}>
         {renderTimeBox(dayType, "start", "시작")}
-        <div className="time-range-divider">~</div>
+        <div className={styles.timeRangeDivider}>~</div>
         {renderTimeBox(dayType, "end", "종료")}
       </div>
     );
   };
 
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
-      <div className="modal-container" onClick={(e) => {
+    <div className={styles.modalOverlay} onClick={handleCancel}>
+      <div className={styles.modalContainer} onClick={(e) => {
         e.stopPropagation();
         setActivePicker(null);
       }}>
-        <div className="modal-header">
-          <h2 className="modal-title">자동 재생 시간대 설정</h2>
-          <button className="btn-close-x" onClick={handleCancel}>&times;</button>
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>자동 재생 시간대 설정</h2>
+          <button className={styles.btnCloseX} onClick={handleCancel}>&times;</button>
         </div>
 
-        <div className="settings-panel">
+        <div className={styles.settingsPanel}>
           {/* 시간대 제한 on/off */}
-          <div className="manual-override-row">
-            <span className="settings-label">시간대 제한 사용</span>
-            <label className="toggle-switch">
+          <div className={styles.manualOverrideRow}>
+            <span className={styles.settingsLabel}>시간대 제한 사용</span>
+            <label className={styles.toggleSwitch}>
               <input
                 type="checkbox"
                 checked={timeRangeEnabled}
                 onChange={(e) => setDraft((prev) => ({ ...prev, enabled: e.target.checked }))}
               />
-              <span className="toggle-slider" />
+              <span className={styles.toggleSlider} />
             </label>
           </div>
 
           {/* 요일 감지/설정 + 시간대 섹션 */}
           {timeRangeEnabled && (
             <>
-              <div className="day-type-section">
-                <div className="manual-override-row">
-                  <span className="settings-label">자동 설정</span>
-                  <label className="toggle-switch">
+              <div className={styles.dayTypeSection}>
+                <div className={styles.manualOverrideRow}>
+                  <span className={styles.settingsLabel}>자동 설정</span>
+                  <label className={styles.toggleSwitch}>
                     <input
                       type="checkbox"
                       checked={isAuto}
                       onChange={(e) => handleAutoToggle(e.target.checked)}
                     />
-                    <span className="toggle-slider" />
+                    <span className={styles.toggleSlider} />
                   </label>
                 </div>
                 {isAuto ? (
-                  <div className="detected-day-type">
-                    <span className="detected-label">감지된 요일 유형</span>
-                    <span className="detected-value">
+                  <div className={styles.detectedDayType}>
+                    <span className={styles.detectedLabel}>감지된 요일 유형</span>
+                    <span className={styles.detectedValue}>
                       {detectedDayType === "weekday" ? "평일" : "주말·공휴일"}
                     </span>
                   </div>
                 ) : (
-                  <div className="day-type-buttons">
+                  <div className={styles.dayTypeButtons}>
                     <button
-                      className={`day-type-btn ${effectiveOverride === "weekday" ? "active" : ""}`}
+                      className={clsx(styles.dayTypeBtn, effectiveOverride === "weekday" && styles.active)}
                       onClick={() => onChangeDayTypeOverride("weekday")}
                     >
                       평일
                     </button>
                     <button
-                      className={`day-type-btn ${effectiveOverride === "holiday" ? "active" : ""}`}
+                      className={clsx(styles.dayTypeBtn, effectiveOverride === "holiday" && styles.active)}
                       onClick={() => onChangeDayTypeOverride("holiday")}
                     >
                       주말·공휴일
@@ -189,17 +190,17 @@ export function AnnouncementTimeRangeSettings({
                 {isAuto ? (
                   <>
                     <div>
-                      <p className="section-title">평일 시간대</p>
+                      <p className={styles.sectionTitle}>평일 시간대</p>
                       {renderTimeRangeRows("weekday")}
                     </div>
                     <div style={{ marginTop: "24px" }}>
-                      <p className="section-title">주말·공휴일 시간대</p>
+                      <p className={styles.sectionTitle}>주말·공휴일 시간대</p>
                       {renderTimeRangeRows("holiday")}
                     </div>
                   </>
                 ) : (
                   <div>
-                    <p className="section-title">
+                    <p className={styles.sectionTitle}>
                       {effectiveOverride === "weekday" ? "평일 시간대" : "주말·공휴일 시간대"}
                     </p>
                     {renderTimeRangeRows(effectiveOverride)}
@@ -210,10 +211,10 @@ export function AnnouncementTimeRangeSettings({
           )}
         </div>
 
-        <div className="modal-footer">
-          <div className="settings-actions">
-            <button className="btn-cancel" onClick={handleCancel}>취소</button>
-            <button className="btn-confirm" onClick={handleConfirm}>확인</button>
+        <div className={styles.modalFooter}>
+          <div className={styles.settingsActions}>
+            <button className={styles.btnCancel} onClick={handleCancel}>취소</button>
+            <button className={styles.btnConfirm} onClick={handleConfirm}>확인</button>
           </div>
         </div>
       </div>

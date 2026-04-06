@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
-import "./App.scss";
+import clsx from "clsx";
+import styles from "./App.module.scss";
 import type { Schedule } from "@/features/announcement/types/schedule";
 import type { AnnouncementTimeRangeSettings, DayType } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS, ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS, STORAGE_KEY, TIME_RANGE_STORAGE_KEY } from "@/constants";
@@ -14,6 +15,7 @@ import { GlobalBottomBar } from "@/components/GlobalBottomBar/GlobalBottomBar";
 import { ScheduleSettings } from "@/features/announcement/components/ScheduleSettings/ScheduleSettings";
 import { AnnouncementTimeRangeSettings as TimeRangeSettingsModal } from "@/features/announcement/components/AnnouncementTimeRangeSettings/AnnouncementTimeRangeSettings";
 import { UpdateNotification } from "@/components/UpdateNotification/UpdateNotification";
+import { SupportModal } from "@/components/SupportModal/SupportModal";
 import { useUpdater } from "@/hooks/useUpdater";
 import {
   Megaphone,
@@ -25,7 +27,9 @@ import {
   PlusCircle,
   ChevronRight,
   Disc,
-  CalendarClock
+  CalendarClock,
+  BookOpen,
+  MessageSquare,
 } from "lucide-react";
 
 function App() {
@@ -39,6 +43,7 @@ function App() {
   const [timeRangeSettings, setTimeRangeSettings] = useState<AnnouncementTimeRangeSettings>(loadTimeRangeSettings);
   const [dayTypeOverride, setDayTypeOverride] = useState<DayType | null>(null);
   const [showTimeRangeSettings, setShowTimeRangeSettings] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState<"guide" | "feedback" | null>(null);
 
   const detectedDayType = getDayType(currentTime);
   const effectiveDayType: DayType = dayTypeOverride ?? detectedDayType;
@@ -99,10 +104,10 @@ function App() {
   if (activeTab === "all-announcements") {
     activeTitle = "전체 안내 방송";
     content = (
-      <div className="all-categories-container">
+      <div className={styles.allCategoriesContainer}>
         {categories.map(cat => (
-          <div key={cat} className="category-group">
-            <h2 className="category-title">{CATEGORY_LABELS[cat]}</h2>
+          <div key={cat} className={styles.categoryGroup}>
+            <h2 className={styles.categoryTitle}>{CATEGORY_LABELS[cat]}</h2>
             <CategorySection
               category={cat}
               announcements={ANNOUNCEMENTS_BY_CATEGORY[cat]}
@@ -186,42 +191,42 @@ function App() {
   // Set initial playlist if bgmusic selected and no playlist, but side menu handles click
 
   return (
-    <div className="app-container">
+    <div className={styles.appContainer}>
       {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <img src="logo.png" alt="고고 다이노" className="logo" />
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <img src="logo.png" alt="고고 다이노" className={styles.logo} />
         </div>
-        <nav className="sidebar-nav">
-          <div className="nav-group">
+        <nav className={styles.sidebarNav}>
+          <div className={styles.navGroup}>
             <button
-              className={`nav-group-title-btn ${activeTab === 'all-announcements' ? 'active' : ''}`}
+              className={clsx(styles.navGroupTitleBtn, activeTab === 'all-announcements' && styles.active)}
               onClick={() => setActiveTab('all-announcements')}
             >
               <Megaphone size={18} />
               <span>안내 방송</span>
             </button>
-            <div className="nav-items-container">
+            <div className={styles.navItemsContainer}>
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  className={`nav-item ${activeTab === cat ? 'active' : ''}`}
+                  className={clsx(styles.navItem, activeTab === cat && styles.active)}
                   onClick={() => setActiveTab(cat)}
                 >
-                  <div className="nav-icon-wrapper">
+                  <div className={styles.navIconWrapper}>
                     {cat === 'attraction' && <Gamepad2 size={16} />}
                     {cat === 'closing' && <LogOut size={16} />}
                     {cat === 'table' && <Utensils size={16} />}
                   </div>
-                  <span className="nav-label">{CATEGORY_LABELS[cat]}</span>
-                  <ChevronRight className="chevron" size={14} />
+                  <span className={styles.navLabel}>{CATEGORY_LABELS[cat]}</span>
+                  <ChevronRight className={styles.chevron} size={14} />
                 </button>
               ))}
             </div>
           </div>
-          <div className="nav-group">
+          <div className={styles.navGroup}>
             <button
-              className={`nav-group-title-btn ${activeTab === 'all-bg-music' ? 'active' : ''}`}
+              className={clsx(styles.navGroupTitleBtn, activeTab === 'all-bg-music' && styles.active)}
               onClick={() => {
                 setActiveTab('all-bg-music');
                 bgMusic.setCurrentPlaylist(null);
@@ -230,11 +235,11 @@ function App() {
               <Music size={18} />
               <span>배경 음악</span>
             </button>
-            <div className="nav-items-container">
+            <div className={styles.navItemsContainer}>
               {bgMusic.playlists.map(p => (
                 <button
                   key={p.id}
-                  className={`nav-item ${activeTab === `playlist-${p.id}` ? 'active' : ''}`}
+                  className={clsx(styles.navItem, activeTab === `playlist-${p.id}` && styles.active)}
                   onClick={() => {
                     if (activeTab === `playlist-${p.id}`) {
                       setActiveTab("all-bg-music");
@@ -244,46 +249,62 @@ function App() {
                     }
                   }}
                 >
-                  <div className="nav-icon-wrapper">
+                  <div className={styles.navIconWrapper}>
                     <ListMusic size={16} />
                   </div>
-                  <span className="nav-label">{p.name}</span>
+                  <span className={styles.navLabel}>{p.name}</span>
                   {bgMusic.isPlaying && bgMusic.playingPlaylistId === p.id ? (
-                    <div className="playing-indicator">
-                      <Disc className="rotating-disc" size={14} />
+                    <div className={styles.playingIndicator}>
+                      <Disc className={styles.rotatingDisc} size={14} />
                     </div>
                   ) : (
-                    <ChevronRight className="chevron" size={14} />
+                    <ChevronRight className={styles.chevron} size={14} />
                   )}
                 </button>
               ))}
               {bgMusic.playlists.length === 0 && activeTab !== 'all-bg-music' && (
                 <button
-                  className={`nav-item ${activeTab === 'playlist-empty' ? 'active' : ''}`}
+                  className={clsx(styles.navItem, activeTab === 'playlist-empty' && styles.active)}
                   onClick={() => setActiveTab('all-bg-music')}
                 >
-                  <div className="nav-icon-wrapper">
+                  <div className={styles.navIconWrapper}>
                     <PlusCircle size={16} />
                   </div>
-                  <span className="nav-label">새 플레이리스트</span>
+                  <span className={styles.navLabel}>새 플레이리스트</span>
                 </button>
               )}
             </div>
           </div>
         </nav>
+        <div className={styles.sidebarFooter}>
+          <button
+            className={styles.sidebarFooterBtn}
+            onClick={() => setShowSupportModal("guide")}
+          >
+            <BookOpen size={16} />
+            <span>사용 가이드</span>
+          </button>
+          <button
+            className={styles.sidebarFooterBtn}
+            onClick={() => setShowSupportModal("feedback")}
+          >
+            <MessageSquare size={16} />
+            <span>건의하기</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <div className="main-area">
-        <header className="main-header">
+      <div className={styles.mainArea}>
+        <header className={styles.mainHeader}>
           <h1>{activeTitle || "배경 음악"}</h1>
-          <div className="current-time">
-            <span className="time-text">{formatTime(currentTime)}</span>
+          <div className={styles.currentTime}>
+            <span className={styles.timeText}>{formatTime(currentTime)}</span>
             {isAnnouncementTab && (
               <>
-                <div className="time-divider" />
+                <div className={styles.timeDivider} />
                 <button
-                  className="btn-time-range-settings"
+                  className={styles.btnTimeRangeSettings}
                   onClick={() => setShowTimeRangeSettings(true)}
                   title="자동 재생 시간대 설정"
                 >
@@ -293,7 +314,7 @@ function App() {
             )}
           </div>
         </header>
-        <main className="content-area">
+        <main className={styles.contentArea}>
           {content || (bgMusic.playlists.length === 0 ? (
             <BgMusicPanel
               tracks={bgMusic.tracks}
@@ -360,6 +381,13 @@ function App() {
           onChangeDayTypeOverride={setDayTypeOverride}
           onChange={setTimeRangeSettings}
           onClose={() => setShowTimeRangeSettings(false)}
+        />
+      )}
+
+      {showSupportModal && (
+        <SupportModal
+          type={showSupportModal}
+          onClose={() => setShowSupportModal(null)}
         />
       )}
 

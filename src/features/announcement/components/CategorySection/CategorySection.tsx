@@ -1,5 +1,5 @@
 import React from "react";
-import "./CategorySection.scss";
+import styles from "./CategorySection.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Schedule } from "@/features/announcement/types/schedule";
 import { CATEGORY_LABELS } from "@/constants";
@@ -31,8 +31,8 @@ export function CategorySection({
   onToggleSettings,
 }: CategorySectionProps): React.ReactNode {
   return (
-    <section className="category-section">
-      <div className="announcements">
+    <section className={styles.categorySection}>
+      <div className={styles.announcements}>
         {announcements.map((ann) => (
           <AnnouncementCard
             key={ann.id}
