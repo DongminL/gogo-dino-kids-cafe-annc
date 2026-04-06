@@ -15,6 +15,7 @@ import { GlobalBottomBar } from "@/components/GlobalBottomBar/GlobalBottomBar";
 import { ScheduleSettings } from "@/features/announcement/components/ScheduleSettings/ScheduleSettings";
 import { AnnouncementTimeRangeSettings as TimeRangeSettingsModal } from "@/features/announcement/components/AnnouncementTimeRangeSettings/AnnouncementTimeRangeSettings";
 import { UpdateNotification } from "@/components/UpdateNotification/UpdateNotification";
+import { SupportModal } from "@/components/SupportModal/SupportModal";
 import { useUpdater } from "@/hooks/useUpdater";
 import {
   Megaphone,
@@ -26,7 +27,9 @@ import {
   PlusCircle,
   ChevronRight,
   Disc,
-  CalendarClock
+  CalendarClock,
+  BookOpen,
+  MessageSquare,
 } from "lucide-react";
 
 function App() {
@@ -40,6 +43,7 @@ function App() {
   const [timeRangeSettings, setTimeRangeSettings] = useState<AnnouncementTimeRangeSettings>(loadTimeRangeSettings);
   const [dayTypeOverride, setDayTypeOverride] = useState<DayType | null>(null);
   const [showTimeRangeSettings, setShowTimeRangeSettings] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState<"guide" | "feedback" | null>(null);
 
   const detectedDayType = getDayType(currentTime);
   const effectiveDayType: DayType = dayTypeOverride ?? detectedDayType;
@@ -272,6 +276,22 @@ function App() {
             </div>
           </div>
         </nav>
+        <div className={styles.sidebarFooter}>
+          <button
+            className={styles.sidebarFooterBtn}
+            onClick={() => setShowSupportModal("guide")}
+          >
+            <BookOpen size={16} />
+            <span>사용 가이드</span>
+          </button>
+          <button
+            className={styles.sidebarFooterBtn}
+            onClick={() => setShowSupportModal("feedback")}
+          >
+            <MessageSquare size={16} />
+            <span>건의하기</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -361,6 +381,13 @@ function App() {
           onChangeDayTypeOverride={setDayTypeOverride}
           onChange={setTimeRangeSettings}
           onClose={() => setShowTimeRangeSettings(false)}
+        />
+      )}
+
+      {showSupportModal && (
+        <SupportModal
+          type={showSupportModal}
+          onClose={() => setShowSupportModal(null)}
         />
       )}
 
