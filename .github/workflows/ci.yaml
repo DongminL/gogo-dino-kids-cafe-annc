@@ -13,7 +13,6 @@ permissions:
 
 jobs:
   unit-test:
-    name: Unit Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -54,7 +53,6 @@ jobs:
         run: npm run build
 
   e2e-test:
-    name: E2E Test
     runs-on: ubuntu-latest
 
     steps:
