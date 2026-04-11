@@ -8,6 +8,11 @@
 # testing
 /coverage
 
+# playwright
+/playwright-test-results
+/playwright-report
+/.playwright-mcp
+
 # production
 /build
 /dist

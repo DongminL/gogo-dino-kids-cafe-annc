@@ -51,8 +51,10 @@ describe("BgMusicPanel - 업로드 진행률", () => {
     capturedProgressCallback = undefined;
   });
 
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
+  afterEach(async () => {
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 
@@ -124,7 +126,7 @@ describe("BgMusicPanel - 업로드 진행률", () => {
 
     expect(screen.getByText("완료")).toBeInTheDocument();
 
-    act(() => { jest.advanceTimersByTime(1500); });
+    await act(async () => { jest.advanceTimersByTime(1500); });
 
     expect(screen.queryByText("auto-remove")).not.toBeInTheDocument();
   });
@@ -351,8 +353,10 @@ describe("BgMusicPanel - 프로그레스 바", () => {
     jest.useFakeTimers();
   });
 
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
+  afterEach(async () => {
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 
