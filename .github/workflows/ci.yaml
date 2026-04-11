@@ -40,6 +40,9 @@ jobs:
           JEST_JUNIT_OUTPUT_DIR: ./test-results
           JEST_JUNIT_OUTPUT_NAME: junit.xml
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: E2E Test
         run: npm run test:e2e
 
