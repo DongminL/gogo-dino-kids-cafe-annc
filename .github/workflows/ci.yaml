@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
       - name: Install jest-junit reporter
         run: npm install --no-save jest-junit
 
@@ -48,9 +51,6 @@ jobs:
           path: test-results/junit.xml
           reporter: jest-junit
           fail-on-error: true
-
-      - name: TypeScript type check
-        run: npx tsc --noEmit
 
       - name: Build check
         run: npm run build
