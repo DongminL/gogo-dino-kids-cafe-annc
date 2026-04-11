@@ -52,5 +52,13 @@ jobs:
           reporter: jest-junit
           fail-on-error: true
 
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
       - name: Build check
         run: npm run build
