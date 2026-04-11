@@ -12,7 +12,8 @@ permissions:
   checks: write
 
 jobs:
-  test:
+  unit-test:
+    name: Unit Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -40,12 +41,6 @@ jobs:
           JEST_JUNIT_OUTPUT_DIR: ./test-results
           JEST_JUNIT_OUTPUT_NAME: junit.xml
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: E2E Test
-        run: npm run test:e2e
-
       - name: Test Report
         uses: dorny/test-reporter@v3
         if: always()
@@ -55,6 +50,32 @@ jobs:
           reporter: jest-junit
           fail-on-error: true
 
+      - name: Build check
+        run: npm run build
+
+  e2e-test:
+    name: E2E Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: GitHub repository checkout
+        uses: actions/checkout@v6
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E Test
+        run: npm run test:e2e
+
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v6
         if: failure()
@@ -62,6 +83,3 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
-
-      - name: Build check
-        run: npm run build
