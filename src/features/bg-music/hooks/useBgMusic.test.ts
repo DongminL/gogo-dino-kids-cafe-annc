@@ -6,6 +6,7 @@ import {
   deleteTrackBlob,
   requestPersistentStorage,
 } from "@/db/trackStorage";
+import { resetBgMusicStore } from "@/stores/useBgMusicStore";
 
 // ─── trackStorage 모킹 ───────────────────────────────────────────────────────
 jest.mock("@/db/trackStorage");
@@ -61,6 +62,7 @@ beforeEach(() => {
   localStorage.clear();
   mockAudioInstances = [];
   jest.clearAllMocks();
+  resetBgMusicStore();
 
   mockSaveTrackBlob.mockResolvedValue(undefined);
   mockGetTrackBlob.mockResolvedValue(new Blob(["audio"], { type: "audio/mpeg" }));

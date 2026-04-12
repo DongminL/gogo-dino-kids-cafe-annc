@@ -1,5 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useAudioPlayer } from "./useAudioPlayer";
+import { resetAudioPlayerStore } from "@/stores/useAudioPlayerStore";
 
 // ─── HTMLAudioElement 모킹 ────────────────────────────────────────────────────
 let mockAudioInstances: MockAudio[] = [];
@@ -56,6 +57,7 @@ beforeAll(() => {
 beforeEach(() => {
   mockAudioInstances = [];
   jest.clearAllMocks();
+  resetAudioPlayerStore();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
