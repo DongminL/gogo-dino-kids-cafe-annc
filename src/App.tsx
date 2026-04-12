@@ -67,7 +67,6 @@ function App() {
   const isAnnouncementTab = activeTab === "all-announcements" || categories.includes(activeTab as keyof typeof CATEGORY_LABELS);
 
   const bgmSettings = bgMusic.settings;
-  const bgmPlayingPlaylist = bgmSettings.playlists.find((p) => p.id === bgMusic.playingPlaylistId) ?? null;
 
   let activeTitle = "";
   let content = null;
