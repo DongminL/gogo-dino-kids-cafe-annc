@@ -1,35 +1,23 @@
 import React from "react";
 import styles from "./CategorySection.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
-import type { Schedule } from "@/features/announcement/types/schedule";
 import { CATEGORY_LABELS } from "@/constants";
 import { AnnouncementCard } from "@/features/announcement/components/AnnouncementCard/AnnouncementCard";
+import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
+import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
 
 interface CategorySectionProps {
   category: keyof typeof CATEGORY_LABELS;
   announcements: AnnouncementDef[];
-  schedules: Record<string, Schedule>;
-  playingId: string | null;
-  progress: { current: number; duration: number };
-  openSettingsId: string | null;
-  onPlay: (ann: AnnouncementDef) => void;
-  onStop: () => void;
-  onSeek: (time: number) => void;
-  onToggleSettings: (id: string) => void;
 }
 
 export function CategorySection({
-  category,
+  category: _category,
   announcements,
-  schedules,
-  playingId,
-  progress,
-  openSettingsId,
-  onPlay,
-  onStop,
-  onSeek,
-  onToggleSettings,
 }: CategorySectionProps): React.ReactNode {
+  const { playingId, progress, play, stop, seek } = useAudioPlayerStore();
+  const { schedules, openSettingsId, toggleSettings } = useAnnouncementStore();
+
   return (
     <section className={styles.categorySection}>
       <div className={styles.announcements}>
@@ -41,10 +29,10 @@ export function CategorySection({
             isPlaying={playingId === ann.id}
             isSettingsOpen={openSettingsId === ann.id}
             progress={progress}
-            onPlay={() => onPlay(ann)}
-            onStop={onStop}
-            onSeek={onSeek}
-            onToggleSettings={() => onToggleSettings(ann.id)}
+            onPlay={() => play(ann)}
+            onStop={stop}
+            onSeek={seek}
+            onToggleSettings={() => toggleSettings(ann.id)}
           />
         ))}
       </div>

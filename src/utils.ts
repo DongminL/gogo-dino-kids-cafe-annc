@@ -74,7 +74,7 @@ export function loadSettings(): Record<string, Schedule> {
       // Migrate "none" type to "once" (if any)
       Object.keys(parsed).forEach(id => {
         if (parsed[id].type === "none") {
-          parsed[id].type = ("once" as any);
+          parsed[id].type = "once";
         }
       });
       return { ...defaults, ...parsed };

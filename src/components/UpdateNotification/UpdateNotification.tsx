@@ -1,30 +1,17 @@
-import React from 'react';
-import clsx from 'clsx';
-import { Download, RefreshCw, X, AlertCircle } from 'lucide-react';
-import type { UpdateStatus } from '../../hooks/useUpdater';
-import styles from './UpdateNotification.module.scss';
+import React from "react";
+import clsx from "clsx";
+import { Download, RefreshCw, X, AlertCircle } from "lucide-react";
+import styles from "./UpdateNotification.module.scss";
+import { useUpdaterStore } from "@/stores/useUpdaterStore";
 
-const GITHUB_RELEASES_URL = 'https://github.com/DongminL/gogo-dino-kids-cafe-annc/releases/tag';
+const GITHUB_RELEASES_URL = "https://github.com/DongminL/gogo-dino-kids-cafe-annc/releases/tag";
 
-interface Props {
-  status: UpdateStatus;
-  updateInfo: { version: string } | null;
-  downloadProgress: { percent: number } | null;
-  errorMessage: string | null;
-  onDownload: () => void;
-  onInstall: () => void;
-  onDismiss: () => void;
-}
+export function UpdateNotification() {
+  const { status, updateInfo, downloadProgress, errorMessage, downloadUpdate, installUpdate, dismiss } = useUpdaterStore();
 
-export function UpdateNotification(
-  {
-    status, updateInfo, downloadProgress, errorMessage,
-    onDownload, onInstall, onDismiss
-  }: Props
-) {
-  if (status === 'idle' || status === 'checking' || status === 'not-available') return null;
+  if (status === "idle" || status === "checking" || status === "not-available") return null;
 
-  if (status === 'available' && updateInfo) {
+  if (status === "available" && updateInfo) {
     return (
       <div className={styles.updateNotification}>
         <div className={styles.updateIconWrapper}>
@@ -34,13 +21,13 @@ export function UpdateNotification(
           className={styles.updateVersionLink}
           onClick={() => window.electronAPI?.openExternal(`${GITHUB_RELEASES_URL}/v${updateInfo.version}`)}
         >{updateInfo.version}</button>이 출시되었습니다.</span>
-        <button className={styles.updateActionBtn} onClick={onDownload}>업데이트</button>
-        <button className={styles.updateDismissBtn} onClick={onDismiss}><X size={14} /></button>
+        <button className={styles.updateActionBtn} onClick={downloadUpdate}>업데이트</button>
+        <button className={styles.updateDismissBtn} onClick={dismiss}><X size={14} /></button>
       </div>
     );
   }
 
-  if (status === 'downloading') {
+  if (status === "downloading") {
     const percent = Math.round(downloadProgress?.percent ?? 0);
     return (
       <div className={clsx(styles.updateNotification, styles.downloading)}>
@@ -57,27 +44,27 @@ export function UpdateNotification(
     );
   }
 
-  if (status === 'downloaded') {
+  if (status === "downloaded") {
     return (
       <div className={clsx(styles.updateNotification, styles.downloaded)}>
         <div className={styles.updateIconWrapper}>
           <RefreshCw size={18} />
         </div>
         <span>업데이트 준비 완료. 재시작하면 설치됩니다.</span>
-        <button className={styles.updateActionBtn} onClick={onInstall}>지금 재시작</button>
-        <button className={styles.updateDismissBtn} onClick={onDismiss}><X size={14} /></button>
+        <button className={styles.updateActionBtn} onClick={installUpdate}>지금 재시작</button>
+        <button className={styles.updateDismissBtn} onClick={dismiss}><X size={14} /></button>
       </div>
     );
   }
 
-  if (status === 'error') {
+  if (status === "error") {
     return (
       <div className={clsx(styles.updateNotification, styles.error)}>
         <div className={styles.updateIconWrapper}>
           <AlertCircle size={18} />
         </div>
-        <span>업데이트 실패{errorMessage ? `: ${errorMessage}` : ''}</span>
-        <button className={styles.updateDismissBtn} onClick={onDismiss}><X size={14} /></button>
+        <span>업데이트 실패{errorMessage ? `: ${errorMessage}` : ""}</span>
+        <button className={styles.updateDismissBtn} onClick={dismiss}><X size={14} /></button>
       </div>
     );
   }
