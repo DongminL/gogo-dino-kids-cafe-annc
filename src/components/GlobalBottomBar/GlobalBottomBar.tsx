@@ -32,6 +32,7 @@ export function GlobalBottomBar(): React.ReactNode {
     setVolume: setBgmVolume,
     setAutoplay,
     setLoop,
+    setCurrentPlaylist,
   } = useBgMusicStore();
 
   const currentTrack = useBgMusicStore(selectBgMusicCurrentTrack);
@@ -45,10 +46,10 @@ export function GlobalBottomBar(): React.ReactNode {
 
   const handleNavigateToPlayingPlaylist = () => {
     if (playingPlaylistId) {
-      useBgMusicStore.getState().setCurrentPlaylist(playingPlaylistId);
+      setCurrentPlaylist(playingPlaylistId);
       setActiveTab(`playlist-${playingPlaylistId}`);
     } else {
-      useBgMusicStore.getState().setCurrentPlaylist(null);
+      setCurrentPlaylist(null);
       setActiveTab("all-bg-music");
     }
   };
