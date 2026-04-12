@@ -13,8 +13,8 @@ import {
   ListMusic
 } from "lucide-react";
 import { formatDuration } from "../../utils";
-import { useAudioPlayerStore } from "@/stores/useAudioPlayerStore";
-import { useBgMusicStore, selectBgMusicCurrentTrack, selectBgMusicCurrentPlaylist } from "@/stores/useBgMusicStore";
+import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
+import { useBgMusicStore, selectBgMusicCurrentTrack, selectBgMusicCurrentPlaylist } from "@/features/bg-music/stores/useBgMusicStore";
 import { useUIStore } from "@/stores/useUIStore";
 
 export function GlobalBottomBar(): React.ReactNode {

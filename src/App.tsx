@@ -12,9 +12,9 @@ import { ScheduleSettings } from "@/features/announcement/components/ScheduleSet
 import { AnnouncementTimeRangeSettings } from "@/features/announcement/components/AnnouncementTimeRangeSettings/AnnouncementTimeRangeSettings";
 import { UpdateNotification } from "@/components/UpdateNotification/UpdateNotification";
 import { SupportModal } from "@/components/SupportModal/SupportModal";
-import { useAnnouncementStore } from "@/stores/useAnnouncementStore";
-import { useAudioPlayerStore } from "@/stores/useAudioPlayerStore";
-import { useBgMusicStore } from "@/stores/useBgMusicStore";
+import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
+import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
+import { useBgMusicStore } from "@/features/bg-music/stores/useBgMusicStore";
 import { useUIStore } from "@/stores/useUIStore";
 import { useUpdaterStore } from "@/stores/useUpdaterStore";
 import {

@@ -3,8 +3,8 @@ import styles from "./CategorySection.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import { CATEGORY_LABELS } from "@/constants";
 import { AnnouncementCard } from "@/features/announcement/components/AnnouncementCard/AnnouncementCard";
-import { useAudioPlayerStore } from "@/stores/useAudioPlayerStore";
-import { useAnnouncementStore } from "@/stores/useAnnouncementStore";
+import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
+import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
 
 interface CategorySectionProps {
   category: keyof typeof CATEGORY_LABELS;

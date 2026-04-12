@@ -6,7 +6,7 @@ import {
   deleteTrackBlob,
   requestPersistentStorage,
 } from "@/db/trackStorage";
-import { resetBgMusicStore } from "@/stores/useBgMusicStore";
+import { resetBgMusicStore } from "@/features/bg-music/stores/useBgMusicStore";
 
 // ─── trackStorage 모킹 ───────────────────────────────────────────────────────
 jest.mock("@/db/trackStorage");

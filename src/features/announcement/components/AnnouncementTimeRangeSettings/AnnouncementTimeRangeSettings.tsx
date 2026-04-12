@@ -5,7 +5,7 @@ import type { AnnouncementTimeRangeSettings as ISettings, DayType, TimeRange } f
 import { Wheel } from "@/components/TimePicker/TimePicker";
 import type { WheelOption } from "@/components/TimePicker/TimePicker";
 import { Clock } from "lucide-react";
-import { useAnnouncementStore } from "@/stores/useAnnouncementStore";
+import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
 import { useKoreanClock } from "@/hooks/useKoreanClock";
 import { getDayType } from "@/features/announcement/hooks/useScheduler";
 

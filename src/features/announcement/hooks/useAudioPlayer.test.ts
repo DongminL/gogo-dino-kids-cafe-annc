@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useAudioPlayer } from "./useAudioPlayer";
-import { resetAudioPlayerStore } from "@/stores/useAudioPlayerStore";
+import { resetAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
 
 // ─── HTMLAudioElement 모킹 ────────────────────────────────────────────────────
 let mockAudioInstances: MockAudio[] = [];

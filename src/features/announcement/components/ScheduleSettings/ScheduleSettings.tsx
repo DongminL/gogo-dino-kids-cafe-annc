@@ -3,7 +3,7 @@ import clsx from "clsx";
 import styles from "./ScheduleSettings.module.scss";
 import type { Schedule, ScheduleType } from "@/features/announcement/types/schedule";
 import { TimePicker } from "@/components/TimePicker/TimePicker";
-import { useAnnouncementStore } from "@/stores/useAnnouncementStore";
+import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
 import { ANNOUNCEMENT_DEFS } from "@/constants";
 
 export function ScheduleSettings(): React.ReactNode {
