@@ -25,6 +25,8 @@ interface UpdaterStore {
   init: () => void;
 }
 
+let updaterInitialized = false;
+
 export const useUpdaterStore = create<UpdaterStore>((set) => ({
   status: "idle",
   updateInfo: null,
@@ -52,6 +54,8 @@ export const useUpdaterStore = create<UpdaterStore>((set) => ({
   },
 
   init: () => {
+    if (updaterInitialized) return;
+    updaterInitialized = true;
     const api = window.electronAPI;
     if (!api) return;
 
