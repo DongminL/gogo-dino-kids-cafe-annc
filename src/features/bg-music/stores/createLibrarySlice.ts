@@ -15,7 +15,7 @@ type LibraryGet = () => {
   stopInternal: () => void;
 };
 
-type LibrarySet = (partial: any) => void;
+type LibrarySet = (partial: { settings: BgMusicSettings }) => void;
 
 export interface LibrarySlice {
   addTrack: (file: File, playlistId?: string, onProgress?: (progress: number) => void) => Promise<void>;

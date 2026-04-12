@@ -23,7 +23,8 @@ type PlaybackGet = () => {
   play: () => void;
 };
 
-type PlaybackSet = (partial: any) => void;
+type PlaybackSetPartial = Partial<PlaybackSlice> & { settings?: BgMusicSettings };
+type PlaybackSet = (partial: PlaybackSetPartial) => void;
 
 export interface PlaybackSlice {
   isPlaying: boolean;
