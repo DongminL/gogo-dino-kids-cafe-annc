@@ -50,12 +50,12 @@ export const useAudioPlayerStore = create<AudioPlayerStore>((set) => ({
       audioRef.current = null;
     };
     audio.onerror = () => {
-      set({ playingId: null });
+      set({ playingId: null, progress: { current: 0, duration: 0 } });
       audioRef.current = null;
     };
 
     audio.play().catch(() => {
-      set({ playingId: null });
+      set({ playingId: null, progress: { current: 0, duration: 0 } });
       audioRef.current = null;
     });
   },
