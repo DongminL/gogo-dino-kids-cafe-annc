@@ -1,19 +1,13 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
 import styles from "./AnnouncementTimeRangeSettings.module.scss";
 import type { AnnouncementTimeRangeSettings as ISettings, DayType, TimeRange } from "@/features/announcement/types/schedule";
 import { Wheel } from "@/components/TimePicker/TimePicker";
 import type { WheelOption } from "@/components/TimePicker/TimePicker";
 import { Clock } from "lucide-react";
-
-interface Props {
-  settings: ISettings;
-  detectedDayType: DayType;
-  dayTypeOverride: DayType | null;
-  onChangeDayTypeOverride: (v: DayType | null) => void;
-  onChange: (s: ISettings) => void;
-  onClose: () => void;
-}
+import { useAnnouncementStore } from "@/stores/useAnnouncementStore";
+import { useKoreanClock } from "@/hooks/useKoreanClock";
+import { getDayType } from "@/features/announcement/hooks/useScheduler";
 
 const HOUR_OPTIONS: WheelOption[] = Array.from({ length: 24 }, (_, i) => {
   const v = String(i).padStart(2, "0");
@@ -25,20 +19,37 @@ const MINUTE_OPTIONS: WheelOption[] = Array.from({ length: 60 }, (_, i) => {
   return { label: v, value: v };
 });
 
-export function AnnouncementTimeRangeSettings({
-  settings,
-  detectedDayType,
-  dayTypeOverride,
-  onChangeDayTypeOverride,
-  onChange,
-  onClose,
-}: Props): React.ReactNode {
-  const [draft, setDraft] = useState<ISettings>(settings);
+export function AnnouncementTimeRangeSettings(): React.ReactNode {
+  const {
+    showTimeRangeSettings,
+    timeRangeSettings,
+    dayTypeOverride,
+    setTimeRangeSettings,
+    setDayTypeOverride,
+    setShowTimeRangeSettings,
+  } = useAnnouncementStore();
+
+  const currentTime = useKoreanClock();
+  const detectedDayType = getDayType(currentTime);
+
+  const [draft, setDraft] = useState<ISettings>(timeRangeSettings);
   const initialDayTypeOverride = useRef(dayTypeOverride);
+
+  // Reset draft and initial override ref each time the modal opens
+  useEffect(() => {
+    if (showTimeRangeSettings) {
+      setDraft(timeRangeSettings);
+      initialDayTypeOverride.current = dayTypeOverride;
+    }
+  }, [showTimeRangeSettings]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isAuto = dayTypeOverride === null;
   const timeRangeEnabled = draft.enabled;
-  const [activePicker, setActivePicker] = useState<{ dayType: DayType, field: keyof TimeRange } | null>(null);
+  const [activePicker, setActivePicker] = useState<{ dayType: DayType; field: keyof TimeRange } | null>(null);
+
+  if (!showTimeRangeSettings) return null;
+
+  const onClose = () => setShowTimeRangeSettings(false);
 
   const updateRange = (dayType: DayType, field: keyof TimeRange, hhmm: string) => {
     setDraft((prev) => ({
@@ -48,21 +59,21 @@ export function AnnouncementTimeRangeSettings({
   };
 
   const handleConfirm = () => {
-    onChange(draft);
+    setTimeRangeSettings(draft);
     onClose();
   };
 
   const handleCancel = () => {
-    onChangeDayTypeOverride(initialDayTypeOverride.current);
+    setDayTypeOverride(initialDayTypeOverride.current);
     onClose();
   };
 
   const handleAutoToggle = (checked: boolean) => {
-    onChangeDayTypeOverride(checked ? null : detectedDayType);
+    setDayTypeOverride(checked ? null : detectedDayType);
   };
 
   const togglePicker = (dayType: DayType, field: keyof TimeRange) => {
-    setActivePicker(prev =>
+    setActivePicker((prev) =>
       prev?.dayType === dayType && prev?.field === field ? null : { dayType, field }
     );
   };
@@ -92,7 +103,7 @@ export function AnnouncementTimeRangeSettings({
         {isActive && (
           <div
             className={styles.timeDropdownWheels}
-            onClick={(e) => e.stopPropagation()} // Prevent close when scrolling wheels
+            onClick={(e) => e.stopPropagation()}
           >
             <Wheel
               options={HOUR_OPTIONS}
@@ -133,7 +144,6 @@ export function AnnouncementTimeRangeSettings({
         </div>
 
         <div className={styles.settingsPanel}>
-          {/* 시간대 제한 on/off */}
           <div className={styles.manualOverrideRow}>
             <span className={styles.settingsLabel}>시간대 제한 사용</span>
             <label className={styles.toggleSwitch}>
@@ -146,7 +156,6 @@ export function AnnouncementTimeRangeSettings({
             </label>
           </div>
 
-          {/* 요일 감지/설정 + 시간대 섹션 */}
           {timeRangeEnabled && (
             <>
               <div className={styles.dayTypeSection}>
@@ -172,13 +181,13 @@ export function AnnouncementTimeRangeSettings({
                   <div className={styles.dayTypeButtons}>
                     <button
                       className={clsx(styles.dayTypeBtn, effectiveOverride === "weekday" && styles.active)}
-                      onClick={() => onChangeDayTypeOverride("weekday")}
+                      onClick={() => setDayTypeOverride("weekday")}
                     >
                       평일
                     </button>
                     <button
                       className={clsx(styles.dayTypeBtn, effectiveOverride === "holiday" && styles.active)}
-                      onClick={() => onChangeDayTypeOverride("holiday")}
+                      onClick={() => setDayTypeOverride("holiday")}
                     >
                       주말·공휴일
                     </button>

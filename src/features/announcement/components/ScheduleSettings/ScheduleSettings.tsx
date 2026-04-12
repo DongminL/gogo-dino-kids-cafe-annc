@@ -3,29 +3,29 @@ import clsx from "clsx";
 import styles from "./ScheduleSettings.module.scss";
 import type { Schedule, ScheduleType } from "@/features/announcement/types/schedule";
 import { TimePicker } from "@/components/TimePicker/TimePicker";
+import { useAnnouncementStore } from "@/stores/useAnnouncementStore";
+import { ANNOUNCEMENT_DEFS } from "@/constants";
 
-interface ScheduleSettingsProps {
-  announcementTitle: string;
-  schedule: Schedule;
-  onChange: (update: Partial<Schedule>) => void;
-  onClose: () => void;
-}
+export function ScheduleSettings(): React.ReactNode {
+  const { openSettingsId, schedules, updateSchedule, toggleSettings } = useAnnouncementStore();
 
-export function ScheduleSettings({
-  announcementTitle,
-  schedule,
-  onChange,
-  onClose,
-}: ScheduleSettingsProps): React.ReactNode {
-  const [draft, setDraft] = useState<Schedule>(schedule);
+  const schedule = openSettingsId ? schedules[openSettingsId] : null;
+  const announcementTitle = openSettingsId
+    ? (ANNOUNCEMENT_DEFS.find((a) => a.id === openSettingsId)?.title ?? "")
+    : "";
 
-  // Sync state if external schedule changes (e.g. initial load)
+  const [draft, setDraft] = useState<Schedule | null>(schedule);
+
   useEffect(() => {
     setDraft(schedule);
   }, [schedule]);
 
+  if (!openSettingsId || !draft) return null;
+
+  const onClose = () => toggleSettings(openSettingsId);
+
   const handleConfirm = () => {
-    onChange(draft);
+    updateSchedule(openSettingsId, draft);
     onClose();
   };
 
@@ -35,10 +35,9 @@ export function ScheduleSettings({
   };
 
   const updateDraft = (update: Partial<Schedule>) => {
-    setDraft((prev) => ({ ...prev, ...update }));
+    setDraft((prev) => prev ? { ...prev, ...update } : prev);
   };
 
-  // Extract hour and minute from "HH:mm"
   const timeParts = draft.time ? draft.time.split(":") : ["00", "00"];
   const hour = timeParts[0] || "00";
   const minute = timeParts[1] || "00";
@@ -95,7 +94,7 @@ export function ScheduleSettings({
                     mode={draft.type as "once" | "odd-hour" | "even-hour"}
                     hour={hour}
                     minute={minute}
-                    onChange={(mode, h, m) => updateDraft({ type: mode, time: `${h}:${m}` })}
+                    onChange={(mode, h, m) => updateDraft({ type: mode as ScheduleType, time: `${h}:${m}` })}
                   />
                 </div>
               )}
@@ -109,12 +108,10 @@ export function ScheduleSettings({
                     pattern="[0-9]*"
                     value={draft.intervalMinutes || ""}
                     onChange={(e) => {
-                      // Remove non-numeric characters and then leading zeros
                       const val = e.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "");
                       updateDraft({ intervalMinutes: val === "" ? 0 : Number(val) });
                     }}
                     onBlur={() => {
-                      // Ensure value is within bounds when leaving the input
                       let val = draft.intervalMinutes;
                       if (val < 1) val = 1;
                       if (val > 180) val = 180;
