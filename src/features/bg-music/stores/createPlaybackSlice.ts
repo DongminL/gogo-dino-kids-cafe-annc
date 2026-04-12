@@ -1,5 +1,4 @@
-import { getTrackBlob } from "@/db/trackStorage";
-import { requestPersistentStorage } from "@/db/trackStorage";
+import { getTrackBlob, requestPersistentStorage } from "@/db/trackStorage";
 import type { BgMusicSettings } from "@/features/bg-music/bgMusicSettings";
 
 type PlaybackCtx = {
@@ -204,8 +203,9 @@ export function createPlaybackSlice(
     },
 
     seek: (time) => {
+      const duration = ctx.audioRef.current?.duration || 0;
       if (ctx.audioRef.current) ctx.audioRef.current.currentTime = time;
-      set((state: any) => ({ progress: { ...state.progress, current: time } }));
+      set({ progress: { current: time, duration } });
     },
 
     setVolume: (v) => {
