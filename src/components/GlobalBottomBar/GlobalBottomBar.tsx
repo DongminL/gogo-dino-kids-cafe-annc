@@ -12,46 +12,48 @@ import {
   Megaphone,
   ListMusic
 } from "lucide-react";
-import type { Track } from "@/features/bg-music/types/bgMusic";
 import { formatDuration } from "../../utils";
+import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
+import { useBgMusicStore, selectBgMusicCurrentTrack, selectBgMusicCurrentPlaylist } from "@/features/bg-music/stores/useBgMusicStore";
+import { useUIStore } from "@/stores/useUIStore";
 
-interface GlobalBottomBarProps {
-  currentTrack: Track | null;
-  isPlaying: boolean;
-  progress: { current: number; duration: number };
-  anncVolume: number;
-  bgmVolume: number;
-  autoplay: boolean;
-  loop: boolean;
-  onPrev: () => void;
-  onTogglePlay: () => void;
-  onNext: () => void;
-  onSeek: (time: number) => void;
-  onSetAnncVolume: (v: number) => void;
-  onSetBgmVolume: (v: number) => void;
-  onToggleAutoplay: () => void;
-  onToggleLoop: () => void;
-  onNavigateToPlayingPlaylist?: () => void;
-}
+export function GlobalBottomBar(): React.ReactNode {
+  const { volume: anncVolume, setVolume: setAnncVolume } = useAudioPlayerStore();
 
-export function GlobalBottomBar({
-  currentTrack,
-  isPlaying,
-  progress,
-  anncVolume,
-  bgmVolume,
-  autoplay,
-  loop,
-  onPrev,
-  onTogglePlay,
-  onNext,
-  onSeek,
-  onSetAnncVolume,
-  onSetBgmVolume,
-  onToggleAutoplay,
-  onToggleLoop,
-  onNavigateToPlayingPlaylist,
-}: GlobalBottomBarProps) {
+  const {
+    settings,
+    isPlaying,
+    playingPlaylistId,
+    progress,
+    prev,
+    togglePlay,
+    next,
+    seek,
+    setVolume: setBgmVolume,
+    setAutoplay,
+    setLoop,
+    setCurrentPlaylist,
+  } = useBgMusicStore();
+
+  const currentTrack = useBgMusicStore(selectBgMusicCurrentTrack);
+  const currentPlaylist = useBgMusicStore(selectBgMusicCurrentPlaylist);
+
+  const { setActiveTab } = useUIStore();
+
+  const bgmVolume = settings.volume;
+  const autoplay = settings.autoplay;
+  const loop = currentPlaylist ? currentPlaylist.loop : settings.loopAll;
+
+  const handleNavigateToPlayingPlaylist = () => {
+    if (playingPlaylistId) {
+      setCurrentPlaylist(playingPlaylistId);
+      setActiveTab(`playlist-${playingPlaylistId}`);
+    } else {
+      setCurrentPlaylist(null);
+      setActiveTab("all-bg-music");
+    }
+  };
+
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,7 +70,6 @@ export function GlobalBottomBar({
 
     const checkOverflow = () => {
       if (containerRef.current && textRef.current) {
-        // Force width reset for accurate measurement
         const container = containerRef.current;
         const text = textRef.current;
 
@@ -79,7 +80,6 @@ export function GlobalBottomBar({
           const scrollDist = text.scrollWidth - container.clientWidth;
           container.style.setProperty("--scroll-dist", `-${scrollDist}px`);
 
-          // Delay marquee start by 2.5 seconds
           animationTimerRef.current = setTimeout(() => {
             setShouldAnimate(true);
           }, 2500);
@@ -89,12 +89,10 @@ export function GlobalBottomBar({
       }
     };
 
-    // Reset states on track change
     setShouldAnimate(false);
     setIsOverflowing(false);
     clearTimers();
 
-    // Check overflow after a short delay for DOM rendering
     const checkTimer = setTimeout(checkOverflow, 200);
 
     window.addEventListener("resize", checkOverflow);
@@ -121,15 +119,13 @@ export function GlobalBottomBar({
             {currentTrack ? currentTrack.name : "재생 중인 배경 음악이 없습니다"}
           </div>
         </div>
-        {onNavigateToPlayingPlaylist && (
-          <button
-            className={styles.goToPlaylistBtn}
-            onClick={onNavigateToPlayingPlaylist}
-            title="재생 중인 플레이리스트로 이동"
-          >
-            <ListMusic size={16} />
-          </button>
-        )}
+        <button
+          className={styles.goToPlaylistBtn}
+          onClick={handleNavigateToPlayingPlaylist}
+          title="재생 중인 플레이리스트로 이동"
+        >
+          <ListMusic size={16} />
+        </button>
       </div>
 
       <div className={styles.playerControls}>
@@ -149,7 +145,7 @@ export function GlobalBottomBar({
               step={0.5}
               value={progress.current}
               disabled={!progress.duration}
-              onChange={(e) => onSeek(Number(e.target.value))}
+              onChange={(e) => seek(Number(e.target.value))}
             />
           </div>
           <span className={styles.timeText}>-{formatDuration(Math.max(0, progress.duration - progress.current))}</span>
@@ -158,17 +154,17 @@ export function GlobalBottomBar({
         <div className={styles.buttons}>
           <button
             className={clsx(styles.secondaryBtn, autoplay && styles.active)}
-            onClick={onToggleAutoplay}
+            onClick={() => setAutoplay(!autoplay)}
             title="자동 재생"
           >
             <Zap size={16} fill={autoplay ? "currentColor" : "none"} />
           </button>
 
-          <button className={styles.transportBtn} onClick={onPrev} title="이전 곡" disabled={!currentTrack}>
+          <button className={styles.transportBtn} onClick={prev} title="이전 곡" disabled={!currentTrack}>
             <SkipBack size={20} fill="currentColor" />
           </button>
 
-          <button className={styles.playBtn} onClick={onTogglePlay} title={isPlaying ? "일시정지" : "재생"} disabled={!currentTrack}>
+          <button className={styles.playBtn} onClick={togglePlay} title={isPlaying ? "일시정지" : "재생"} disabled={!currentTrack}>
             {isPlaying ? (
               <Pause size={24} fill="currentColor" />
             ) : (
@@ -176,13 +172,13 @@ export function GlobalBottomBar({
             )}
           </button>
 
-          <button className={styles.transportBtn} onClick={onNext} title="다음 곡" disabled={!currentTrack}>
+          <button className={styles.transportBtn} onClick={next} title="다음 곡" disabled={!currentTrack}>
             <SkipForward size={20} fill="currentColor" />
           </button>
 
           <button
             className={clsx(styles.secondaryBtn, loop && styles.active)}
-            onClick={onToggleLoop}
+            onClick={() => setLoop(playingPlaylistId, !loop)}
             title="반복 재생"
           >
             <Repeat size={18} strokeWidth={loop ? 3 : 2} />
@@ -203,7 +199,7 @@ export function GlobalBottomBar({
               step={0.01}
               value={anncVolume}
               style={{ "--progress": `${anncVolume * 100}%` } as React.CSSProperties}
-              onChange={(e) => onSetAnncVolume(Number(e.target.value))}
+              onChange={(e) => setAnncVolume(Number(e.target.value))}
             />
           </div>
           <span className={styles.volumeVal}>{Math.round(anncVolume * 100)}</span>
@@ -221,7 +217,7 @@ export function GlobalBottomBar({
               step={0.01}
               value={bgmVolume}
               style={{ "--progress": `${bgmVolume * 100}%` } as React.CSSProperties}
-              onChange={(e) => onSetBgmVolume(Number(e.target.value))}
+              onChange={(e) => setBgmVolume(Number(e.target.value))}
             />
           </div>
           <span className={styles.volumeVal}>{Math.round(bgmVolume * 100)}</span>

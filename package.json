@@ -1,6 +1,6 @@
 {
   "name": "gogo-dino-annc",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "main": "public/electron.js",
   "scripts": {
@@ -10,7 +10,10 @@
     "dist": "vite build && electron-builder --win",
     "dist:publish": "vite build && electron-builder --win --publish always",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "build": {
     "appId": "com.gogodino.annc",
@@ -43,6 +46,7 @@
     }
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -70,6 +74,7 @@
     "clsx": "^2.1.1",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.8.3",
-    "qrcode.react": "^4.2.0"
+    "qrcode.react": "^4.2.0",
+    "zustand": "^5.0.12"
   }
 }

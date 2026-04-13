@@ -12,7 +12,7 @@ permissions:
   checks: write
 
 jobs:
-  test:
+  unit-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +27,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
 
       - name: Install jest-junit reporter
         run: npm install --no-save jest-junit
@@ -46,8 +49,35 @@ jobs:
           reporter: jest-junit
           fail-on-error: true
 
-      - name: TypeScript type check
-        run: npx tsc --noEmit
-
       - name: Build check
         run: npm run build
+
+  e2e-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: GitHub repository checkout
+        uses: actions/checkout@v6
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E Test
+        run: npm run test:e2e
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
