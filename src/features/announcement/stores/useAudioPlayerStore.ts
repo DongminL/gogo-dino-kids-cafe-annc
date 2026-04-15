@@ -11,14 +11,22 @@ interface AudioPlayerStore {
   progress: AudioProgress;
   volume: number;
   play: (ann: AnnouncementDef) => void;
+  enqueue: (ann: AnnouncementDef, priority?: number) => void;
   stop: () => void;
   seek: (time: number) => void;
   setVolume: (v: number) => void;
 }
 
+interface QueueItem {
+  ann: AnnouncementDef;
+  priority: number; // 낮을수록 먼저 재생
+}
+
 // Module-level mutable refs (not reactive, not serialized)
 const audioRef = { current: null as HTMLAudioElement | null };
 const volumeRef = { current: 1.0 };
+const queueRef = { current: [] as QueueItem[] };
+const playGenerationRef = { current: 0 };
 
 function cleanupAudio() {
   if (audioRef.current) {
@@ -30,55 +38,84 @@ function cleanupAudio() {
   }
 }
 
-export const useAudioPlayerStore = create<AudioPlayerStore>((set) => ({
-  playingId: null,
-  progress: { current: 0, duration: 0 },
-  volume: 1.0,
-
-  play: (ann) => {
+export const useAudioPlayerStore = create<AudioPlayerStore>((set) => {
+  function playAudio(ann: AnnouncementDef) {
     cleanupAudio();
+    const generation = ++playGenerationRef.current;
     const audio = new Audio(ann.audioFile);
     audio.volume = volumeRef.current;
     audioRef.current = audio;
     set({ playingId: ann.id, progress: { current: 0, duration: 0 } });
 
-    audio.ontimeupdate = () => {
+    const handleEnd = () => {
+      audioRef.current = null;
+      if (queueRef.current.length > 0) {
+        const next = queueRef.current.shift()!;
+        playAudio(next.ann);
+      } else {
+        set({ playingId: null, progress: { current: 0, duration: 0 } });
+      }
+    };
+
+    audio.ontimeupdate = () =>
       set({ progress: { current: audio.currentTime, duration: audio.duration || 0 } });
-    };
-    audio.onended = () => {
-      set({ playingId: null, progress: { current: 0, duration: 0 } });
-      audioRef.current = null;
-    };
-    audio.onerror = () => {
-      set({ playingId: null, progress: { current: 0, duration: 0 } });
-      audioRef.current = null;
-    };
+    audio.onended = handleEnd;
+    audio.onerror = handleEnd;
 
     audio.play().catch(() => {
-      set({ playingId: null, progress: { current: 0, duration: 0 } });
-      audioRef.current = null;
+      if (playGenerationRef.current === generation) {
+        handleEnd();
+      }
     });
-  },
+  }
 
-  stop: () => {
-    cleanupAudio();
-    set({ playingId: null, progress: { current: 0, duration: 0 } });
-  },
+  return {
+    playingId: null,
+    progress: { current: 0, duration: 0 },
+    volume: 1.0,
 
-  seek: (time) => {
-    if (audioRef.current) audioRef.current.currentTime = time;
-    set((state) => ({ progress: { ...state.progress, current: time } }));
-  },
+    play: (ann) => {
+      queueRef.current = [];
+      playAudio(ann);
+    },
 
-  setVolume: (v) => {
-    volumeRef.current = v;
-    if (audioRef.current) audioRef.current.volume = v;
-    set({ volume: v });
-  },
-}));
+    enqueue: (ann, priority = 1) => {
+      if (audioRef.current === null) {
+        playAudio(ann);
+      } else {
+        const item: QueueItem = { ann, priority };
+        const idx = queueRef.current.findIndex((q) => q.priority > item.priority);
+        if (idx === -1) {
+          queueRef.current.push(item);
+        } else {
+          queueRef.current.splice(idx, 0, item);
+        }
+      }
+    },
+
+    stop: () => {
+      queueRef.current = [];
+      cleanupAudio();
+      set({ playingId: null, progress: { current: 0, duration: 0 } });
+    },
+
+    seek: (time) => {
+      if (audioRef.current) audioRef.current.currentTime = time;
+      set((state) => ({ progress: { ...state.progress, current: time } }));
+    },
+
+    setVolume: (v) => {
+      volumeRef.current = v;
+      if (audioRef.current) audioRef.current.volume = v;
+      set({ volume: v });
+    },
+  };
+});
 
 export function resetAudioPlayerStore() {
   cleanupAudio();
+  queueRef.current = [];
+  playGenerationRef.current = 0;
   volumeRef.current = 1.0;
   useAudioPlayerStore.setState({ playingId: null, progress: { current: 0, duration: 0 }, volume: 1.0 });
 }
