@@ -38,12 +38,19 @@ export function isInTimeRange(start: string, end: string, hh: number, mm: number
   return current >= sh * 60 + sm && current <= eh * 60 + em;
 }
 
+const SCHEDULE_PRIORITY: Record<string, number> = {
+  once: 0,
+  "odd-hour": 0,
+  "even-hour": 0,
+  interval: 1,
+};
+
 export function useScheduler(
   currentTime: Date,
   schedules: Record<string, Schedule>,
   timeRangeSettings: AnnouncementTimeRangeSettings,
   effectiveDayType: DayType,
-  onFire: (ann: AnnouncementDef) => void
+  onFire: (ann: AnnouncementDef, priority: number) => void
 ): void {
   const schedulesRef = useRef(schedules);
   useEffect(() => {
@@ -95,7 +102,8 @@ export function useScheduler(
 
       if (shouldFire(schedule, hh, mm)) {
         triggeredRef.current.add(triggerKey);
-        onFireRef.current(ann);
+        const priority = SCHEDULE_PRIORITY[schedule.type] ?? 1;
+        onFireRef.current(ann, priority);
       }
     });
   }, [currentTime]);

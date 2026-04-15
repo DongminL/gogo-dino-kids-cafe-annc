@@ -37,7 +37,7 @@ function App() {
 
   // ─── Stores ────────────────────────────────────────────────────────────────
   const { schedules, timeRangeSettings, dayTypeOverride, setShowTimeRangeSettings } = useAnnouncementStore();
-  const { playingId, play } = useAudioPlayerStore();
+  const { playingId, play, enqueue } = useAudioPlayerStore();
   const bgMusic = useBgMusicStore();
   const { activeTab, setActiveTab, showSupportModal, setShowSupportModal } = useUIStore();
   const { init: initUpdater } = useUpdaterStore();
@@ -60,7 +60,7 @@ function App() {
   // ─── Scheduler ────────────────────────────────────────────────────────────
   const detectedDayType = getDayType(currentTime);
   const effectiveDayType = dayTypeOverride ?? detectedDayType;
-  useScheduler(currentTime, schedules, timeRangeSettings, effectiveDayType, play);
+  useScheduler(currentTime, schedules, timeRangeSettings, effectiveDayType, enqueue);
 
   // ─── Content routing ──────────────────────────────────────────────────────
   const categories = Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[];
