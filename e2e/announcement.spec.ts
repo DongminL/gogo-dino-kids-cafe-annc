@@ -19,9 +19,9 @@ test.describe("전체 안내 방송 페이지", () => {
     await expect(page.getByRole("button", { name: "▶ 재생" })).toHaveCount(3);
   });
 
-  test("마감 안내 방송 페이지에 4개 방송 카드가 있다", async ({ page }) => {
+  test("마감 안내 방송 페이지에 6개 방송 카드가 있다", async ({ page }) => {
     await page.getByRole("button", { name: "마감 안내 방송" }).click();
-    await expect(page.getByRole("button", { name: "▶ 재생" })).toHaveCount(4);
+    await expect(page.getByRole("button", { name: "▶ 재생" })).toHaveCount(6);
   });
 
   test("어트랙션 운영: 댄스트램폴린, 짚라인, 포토타임 카드가 있다", async ({ page }) => {
