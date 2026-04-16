@@ -42,9 +42,9 @@ test.describe("사이드바 네비게이션", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("마감 안내 방송");
   });
 
-  test("식사 테이블 양보 방송 클릭 시 해당 페이지로 이동한다", async ({ page }) => {
-    await page.getByRole("button", { name: "식사 테이블 양보 방송" }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("식사 테이블 양보 방송");
+  test("이용 에티켓 방송 클릭 시 해당 페이지로 이동한다", async ({ page }) => {
+    await page.getByRole("button", { name: "이용 에티켓 방송" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("이용 에티켓 방송");
   });
 
   test("배경 음악 클릭 시 배경 음악 목록 페이지로 이동한다", async ({ page }) => {
