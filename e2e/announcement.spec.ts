@@ -45,11 +45,11 @@ test.describe("전체 안내 방송 페이지", () => {
   });
 
   test("댄스트램폴린은 짝수 시각 자동 재생으로 설정되어 있다", async ({ page }) => {
-    await expect(page.getByText("짝수 시각 58분 자동 재생")).toBeVisible();
+    await expect(page.getByText("짝수 시각 59분 자동 재생")).toBeVisible();
   });
 
   test("짚라인은 홀수 시각 자동 재생으로 설정되어 있다", async ({ page }) => {
-    await expect(page.getByText("홀수 시각 58분 자동 재생")).toBeVisible();
+    await expect(page.getByText("홀수 시각 59분 자동 재생")).toBeVisible();
   });
 
   test("포토타임은 자동 재생이 꺼져 있다", async ({ page }) => {

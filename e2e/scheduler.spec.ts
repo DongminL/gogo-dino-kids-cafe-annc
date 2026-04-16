@@ -95,11 +95,11 @@ test.describe("안내방송 자동 재생 스케줄러", () => {
     });
   });
 
-  test("짝수 시각 :58 설정 시 18:58에 댄스트램폴린 방송이 자동으로 재생된다", async ({
+  test("짝수 시각 :59 설정 시 18:59에 댄스트램폴린 방송이 자동으로 재생된다", async ({
     page,
   }) => {
-    // 2024-01-17 18:58:00 KST (짝수 시각, ss=0, 평일 자동 재생 시간대 내)
-    await page.addInitScript(buildDateMockScript(toUtcMs(18, 58)));
+    // 2024-01-17 18:59:00 KST (짝수 시각, ss=0, 평일 자동 재생 시간대 내)
+    await page.addInitScript(buildDateMockScript(toUtcMs(18, 59)));
 
     await page.goto("/");
 
@@ -111,11 +111,11 @@ test.describe("안내방송 자동 재생 스케줄러", () => {
     });
   });
 
-  test("홀수 시각 :58 설정 시 17:58에 짚라인 방송이 자동으로 재생된다", async ({
+  test("홀수 시각 :59 설정 시 17:59에 짚라인 방송이 자동으로 재생된다", async ({
     page,
   }) => {
-    // 2024-01-17 17:58:00 KST (홀수 시각, ss=0, 평일 자동 재생 시간대 내)
-    await page.addInitScript(buildDateMockScript(toUtcMs(17, 58)));
+    // 2024-01-17 17:59:00 KST (홀수 시각, ss=0, 평일 자동 재생 시간대 내)
+    await page.addInitScript(buildDateMockScript(toUtcMs(17, 59)));
 
     await page.goto("/");
 
