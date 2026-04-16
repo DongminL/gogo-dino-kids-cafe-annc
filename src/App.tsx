@@ -22,7 +22,7 @@ import {
   Music,
   Gamepad2,
   LogOut,
-  Utensils,
+  ShieldCheck,
   ListMusic,
   PlusCircle,
   ChevronRight,
@@ -167,7 +167,7 @@ function App() {
                   <div className={styles.navIconWrapper}>
                     {cat === "attraction" && <Gamepad2 size={16} />}
                     {cat === "closing" && <LogOut size={16} />}
-                    {cat === "table" && <Utensils size={16} />}
+                    {cat === "etiquette" && <ShieldCheck size={16} />}
                   </div>
                   <span className={styles.navLabel}>{CATEGORY_LABELS[cat]}</span>
                   <ChevronRight className={styles.chevron} size={14} />

@@ -19,9 +19,9 @@ test.describe("전체 안내 방송 페이지", () => {
     await expect(page.getByRole("button", { name: "▶ 재생" })).toHaveCount(3);
   });
 
-  test("마감 안내 방송 페이지에 4개 방송 카드가 있다", async ({ page }) => {
+  test("마감 안내 방송 페이지에 6개 방송 카드가 있다", async ({ page }) => {
     await page.getByRole("button", { name: "마감 안내 방송" }).click();
-    await expect(page.getByRole("button", { name: "▶ 재생" })).toHaveCount(4);
+    await expect(page.getByRole("button", { name: "▶ 재생" })).toHaveCount(6);
   });
 
   test("어트랙션 운영: 댄스트램폴린, 짚라인, 포토타임 카드가 있다", async ({ page }) => {
@@ -45,11 +45,11 @@ test.describe("전체 안내 방송 페이지", () => {
   });
 
   test("댄스트램폴린은 짝수 시각 자동 재생으로 설정되어 있다", async ({ page }) => {
-    await expect(page.getByText("짝수 시각 58분 자동 재생")).toBeVisible();
+    await expect(page.getByText("짝수 시각 59분 자동 재생")).toBeVisible();
   });
 
   test("짚라인은 홀수 시각 자동 재생으로 설정되어 있다", async ({ page }) => {
-    await expect(page.getByText("홀수 시각 58분 자동 재생")).toBeVisible();
+    await expect(page.getByText("홀수 시각 59분 자동 재생")).toBeVisible();
   });
 
   test("포토타임은 자동 재생이 꺼져 있다", async ({ page }) => {

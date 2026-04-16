@@ -11,14 +11,14 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "댄스트램폴린",
     category: "attraction",
     audioFile: "dance-trampoline.mp3",
-    defaultSchedule: { type: "even-hour", time: "00:58", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "even-hour", time: "00:59", intervalMinutes: 30, enabled: true },
   },
   {
     id: "zip-line",
     title: "짚라인",
     category: "attraction",
     audioFile: "zip-line.mp3",
-    defaultSchedule: { type: "odd-hour", time: "00:58", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "odd-hour", time: "00:59", intervalMinutes: 30, enabled: true },
   },
   {
     id: "photo-time",
@@ -56,18 +56,39 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     defaultSchedule: { type: "once", time: "19:50", intervalMinutes: 30, enabled: true },
   },
   {
+    id: "return-dishes",
+    title: "식기 반납",
+    category: "closing",
+    audioFile: "return-dishes.mp3",
+    defaultSchedule: { type: "once", time: "19:15", intervalMinutes: 30, enabled: false },
+  },
+  {
+    id: "room-ab",
+    title: "룸 A, B 마감",
+    category: "closing",
+    audioFile: "room-ab.mp3",
+    defaultSchedule: { type: "once", time: "16:45", intervalMinutes: 30, enabled: false },
+  },
+  {
     id: "table-yield",
     title: "식사 테이블 양보",
-    category: "table",
+    category: "etiquette",
     audioFile: "table-yield.mp3",
     defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: false },
+  },
+  {
+    id: "socks",
+    title: "양말 착용",
+    category: "etiquette",
+    audioFile: "socks.mp3",
+    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 33, enabled: false },
   },
 ];
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   attraction: "어트랙션 운영",
   closing: "마감 안내 방송",
-  table: "식사 테이블 양보 방송",
+  etiquette: "이용 에티켓 방송",
 };
 
 export const SCHEDULE_TYPE_LABELS: Record<ScheduleType, string> = {
