@@ -56,11 +56,32 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     defaultSchedule: { type: "once", time: "19:50", intervalMinutes: 30, enabled: true },
   },
   {
+    id: "return-dishes",
+    title: "식기 반납",
+    category: "closing",
+    audioFile: "return-dishes.mp3",
+    defaultSchedule: { type: "once", time: "19:15", intervalMinutes: 30, enabled: false },
+  },
+  {
+    id: "room-ab",
+    title: "룸 A, B 마감",
+    category: "closing",
+    audioFile: "room-ab.mp3",
+    defaultSchedule: { type: "once", time: "16:45", intervalMinutes: 30, enabled: false },
+  },
+  {
     id: "table-yield",
     title: "식사 테이블 양보",
     category: "table",
     audioFile: "table-yield.mp3",
     defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: false },
+  },
+  {
+    id: "socks",
+    title: "양말 착용",
+    category: "table",
+    audioFile: "socks.mp3",
+    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: true },
   },
 ];
 
