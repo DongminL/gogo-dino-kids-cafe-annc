@@ -11,14 +11,14 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "댄스트램폴린",
     category: "attraction",
     audioFile: "dance-trampoline.mp3",
-    defaultSchedule: { type: "even-hour", time: "00:58", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "even-hour", time: "00:59", intervalMinutes: 30, enabled: true },
   },
   {
     id: "zip-line",
     title: "짚라인",
     category: "attraction",
     audioFile: "zip-line.mp3",
-    defaultSchedule: { type: "odd-hour", time: "00:58", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "odd-hour", time: "00:59", intervalMinutes: 30, enabled: true },
   },
   {
     id: "photo-time",
@@ -81,7 +81,7 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "양말 착용",
     category: "etiquette",
     audioFile: "socks.mp3",
-    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 33, enabled: false },
   },
 ];
 
