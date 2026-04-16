@@ -72,14 +72,14 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
   {
     id: "table-yield",
     title: "식사 테이블 양보",
-    category: "table",
+    category: "etiquette",
     audioFile: "table-yield.mp3",
     defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: false },
   },
   {
     id: "socks",
     title: "양말 착용",
-    category: "table",
+    category: "etiquette",
     audioFile: "socks.mp3",
     defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: true },
   },
@@ -88,7 +88,7 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
 export const CATEGORY_LABELS: Record<Category, string> = {
   attraction: "어트랙션 운영",
   closing: "마감 안내 방송",
-  table: "식사 테이블 양보 방송",
+  etiquette: "이용 에티켓 방송",
 };
 
 export const SCHEDULE_TYPE_LABELS: Record<ScheduleType, string> = {
