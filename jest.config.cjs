@@ -6,6 +6,7 @@ module.exports = {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: "./tsconfig.test.json" }],
   },
   moduleNameMapper: {
+    "^@/.*\\.module\\.(css|scss)$": "<rootDir>/src/__mocks__/cssModuleMock.ts",
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.module\\.(css|scss)$": "<rootDir>/src/__mocks__/cssModuleMock.ts",
   },
