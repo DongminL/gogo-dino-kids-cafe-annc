@@ -1,7 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import { Download, RefreshCw, X, AlertCircle } from "lucide-react";
-import styles from "./UpdateNotification.module.scss";
+import styles from "@/components/UpdateNotification/UpdateNotification.module.scss";
 import { useUpdaterStore } from "@/stores/useUpdaterStore";
 
 const GITHUB_RELEASES_URL = "https://github.com/DongminL/gogo-dino-kids-cafe-annc/releases/tag";

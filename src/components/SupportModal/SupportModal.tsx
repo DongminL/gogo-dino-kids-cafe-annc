@@ -1,7 +1,7 @@
 import React from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { BookOpen, MessageSquare } from "lucide-react";
-import styles from "./SupportModal.module.scss";
+import styles from "@/components/SupportModal/SupportModal.module.scss";
 import { GITHUB_WIKI_URL, GOOGLE_FORM_URL } from "@/support-links";
 
 interface SupportModalProps {

@@ -1,6 +1,6 @@
 import React from "react";
-import styles from "./AudioControls.module.scss";
-import { formatDuration } from "../../utils";
+import styles from "@/components/AudioControls/AudioControls.module.scss";
+import { formatDuration } from "@/utils";
 
 interface AudioControlsProps {
   current: number;

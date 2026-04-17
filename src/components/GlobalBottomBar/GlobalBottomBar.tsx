@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
-import styles from "./GlobalBottomBar.module.scss";
+import styles from "@/components/GlobalBottomBar/GlobalBottomBar.module.scss";
 import {
   SkipBack,
   SkipForward,
@@ -12,7 +12,7 @@ import {
   Megaphone,
   ListMusic
 } from "lucide-react";
-import { formatDuration } from "../../utils";
+import { formatDuration } from "@/utils";
 import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
 import { useBgMusicStore, selectBgMusicCurrentTrack, selectBgMusicCurrentPlaylist } from "@/features/bg-music/stores/useBgMusicStore";
 import { useUIStore } from "@/stores/useUIStore";

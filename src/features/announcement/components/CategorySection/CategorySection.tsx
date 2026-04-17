@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./CategorySection.module.scss";
+import styles from "@/features/announcement/components/CategorySection/CategorySection.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import { CATEGORY_LABELS } from "@/features/announcement/announcements";
 import { AnnouncementCard } from "@/features/announcement/components/AnnouncementCard/AnnouncementCard";

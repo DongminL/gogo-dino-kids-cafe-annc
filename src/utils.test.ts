@@ -1,4 +1,4 @@
-import { formatTime, formatDuration, getScheduleLabel, loadSettings, loadTimeRangeSettings, DEFAULT_TIME_RANGE_SETTINGS } from "./utils";
+import { formatTime, formatDuration, getScheduleLabel, loadSettings, loadTimeRangeSettings, DEFAULT_TIME_RANGE_SETTINGS } from "@/utils";
 import type { Schedule } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS } from "@/features/announcement/announcements";
 
