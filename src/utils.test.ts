@@ -1,6 +1,6 @@
-import { formatTime, formatDuration, getScheduleLabel, loadSettings, loadTimeRangeSettings, DEFAULT_TIME_RANGE_SETTINGS } from "./utils";
+import { formatTime, formatDuration, getScheduleLabel, loadSettings, loadTimeRangeSettings, DEFAULT_TIME_RANGE_SETTINGS } from "@/utils";
 import type { Schedule } from "@/features/announcement/types/schedule";
-import { ANNOUNCEMENT_DEFS } from "./constants";
+import { ANNOUNCEMENT_DEFS } from "@/features/announcement/announcements";
 
 describe("formatTime", () => {
   it("시, 분, 초를 HH:MM:SS 형식으로 반환한다", () => {

@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useBgMusic } from "./useBgMusic";
+import { useBgMusic } from "@/features/bg-music/hooks/useBgMusic";
 import {
   saveTrackBlob,
   getTrackBlob,

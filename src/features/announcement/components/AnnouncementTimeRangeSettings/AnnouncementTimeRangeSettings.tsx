@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
-import styles from "./AnnouncementTimeRangeSettings.module.scss";
+import styles from "@/features/announcement/components/AnnouncementTimeRangeSettings/AnnouncementTimeRangeSettings.module.scss";
 import type { AnnouncementTimeRangeSettings as ISettings, DayType, TimeRange } from "@/features/announcement/types/schedule";
 import { Wheel } from "@/components/TimePicker/TimePicker";
 import type { WheelOption } from "@/components/TimePicker/TimePicker";

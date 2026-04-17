@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./VolumeControl.module.scss";
+import styles from "@/components/VolumeControl/VolumeControl.module.scss";
 
 interface VolumeControlProps {
   volume: number;

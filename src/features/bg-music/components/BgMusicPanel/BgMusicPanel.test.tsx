@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import { BgMusicPanel } from "./BgMusicPanel";
+import { BgMusicPanel } from "@/features/bg-music/components/BgMusicPanel/BgMusicPanel";
 import type { Playlist, Track } from "@/features/bg-music/types/bgMusic";
 
 // ─── 헬퍼 ─────────────────────────────────────────────────────────────────────

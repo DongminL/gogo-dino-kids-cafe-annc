@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Schedule, AnnouncementTimeRangeSettings, DayType } from "@/features/announcement/types/schedule";
-import { STORAGE_KEY, TIME_RANGE_STORAGE_KEY } from "@/constants";
+import { STORAGE_KEY, TIME_RANGE_STORAGE_KEY } from "@/features/announcement/announcements";
 import { loadSettings, loadTimeRangeSettings } from "@/utils";
 
 interface AnnouncementStore {

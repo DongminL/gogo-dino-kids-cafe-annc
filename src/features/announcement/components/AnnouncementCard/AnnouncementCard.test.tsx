@@ -1,9 +1,9 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { AnnouncementCard } from "./AnnouncementCard";
-import type { AnnouncementDef } from "../../types/announcement";
-import type { Schedule } from "../../types/schedule";
+import { AnnouncementCard } from "@/features/announcement/components/AnnouncementCard/AnnouncementCard";
+import type { AnnouncementDef } from "@/features/announcement/types/announcement";
+import type { Schedule } from "@/features/announcement/types/schedule";
 
 const ann: AnnouncementDef = {
   id: "meal-order",

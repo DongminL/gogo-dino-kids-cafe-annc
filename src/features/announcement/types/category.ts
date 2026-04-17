@@ -1,1 +1,1 @@
-export type Category = "attraction" | "closing" | "table";
+export type Category = "attraction" | "closing" | "etiquette";

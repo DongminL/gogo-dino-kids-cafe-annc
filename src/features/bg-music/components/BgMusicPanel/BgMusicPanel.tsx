@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import clsx from "clsx";
 import { GripVertical, Trash2, Edit2, Check, X, RotateCcw } from "lucide-react";
-import styles from "./BgMusicPanel.module.scss";
+import styles from "@/features/bg-music/components/BgMusicPanel/BgMusicPanel.module.scss";
 import type { Track, Playlist } from "@/features/bg-music/types/bgMusic";
 import { stripExtension } from "@/utils";
 

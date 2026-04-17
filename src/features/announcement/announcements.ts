@@ -1,8 +1,13 @@
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Category } from "@/features/announcement/types/category";
-import type { ScheduleType } from "@/features/announcement/types/schedule";
 
 export const STORAGE_KEY = "annc-schedules";
+
+export const CATEGORY_LABELS: Record<Category, string> = {
+  attraction: "어트랙션 운영",
+  closing: "마감 안내 방송",
+  etiquette: "이용 에티켓 방송",
+};
 export const TIME_RANGE_STORAGE_KEY = "annc-time-range";
 
 export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
@@ -11,14 +16,14 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "댄스트램폴린",
     category: "attraction",
     audioFile: "dance-trampoline.mp3",
-    defaultSchedule: { type: "even-hour", time: "00:58", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "even-hour", time: "00:59", intervalMinutes: 30, enabled: true },
   },
   {
     id: "zip-line",
     title: "짚라인",
     category: "attraction",
     audioFile: "zip-line.mp3",
-    defaultSchedule: { type: "odd-hour", time: "00:58", intervalMinutes: 30, enabled: true },
+    defaultSchedule: { type: "odd-hour", time: "00:59", intervalMinutes: 30, enabled: true },
   },
   {
     id: "photo-time",
@@ -56,28 +61,35 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     defaultSchedule: { type: "once", time: "19:50", intervalMinutes: 30, enabled: true },
   },
   {
+    id: "return-dishes",
+    title: "식기 반납",
+    category: "closing",
+    audioFile: "return-dishes.mp3",
+    defaultSchedule: { type: "once", time: "19:15", intervalMinutes: 30, enabled: false },
+  },
+  {
+    id: "room-ab",
+    title: "룸 A, B 마감",
+    category: "closing",
+    audioFile: "room-ab.mp3",
+    defaultSchedule: { type: "once", time: "16:45", intervalMinutes: 30, enabled: false },
+  },
+  {
     id: "table-yield",
     title: "식사 테이블 양보",
-    category: "table",
+    category: "etiquette",
     audioFile: "table-yield.mp3",
     defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 30, enabled: false },
   },
+  {
+    id: "socks",
+    title: "양말 착용",
+    category: "etiquette",
+    audioFile: "socks.mp3",
+    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 33, enabled: false },
+  },
 ];
 
-export const CATEGORY_LABELS: Record<Category, string> = {
-  attraction: "어트랙션 운영",
-  closing: "마감 안내 방송",
-  table: "식사 테이블 양보 방송",
-};
-
-export const SCHEDULE_TYPE_LABELS: Record<ScheduleType, string> = {
-  once: "특정 시각 1회",
-  "odd-hour": "매 홀수 시각 정각",
-  "even-hour": "매 짝수 시각 정각",
-  interval: "반복 간격",
-};
-
-/** 카테고리별로 그룹화된 방송 목록 (정적 데이터이므로 모듈 수준에서 미리 계산) */
 export const ANNOUNCEMENTS_BY_CATEGORY = (
   Object.keys(CATEGORY_LABELS) as Category[]
 ).reduce<Record<Category, AnnouncementDef[]>>(
