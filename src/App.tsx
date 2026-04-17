@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import clsx from "clsx";
 import styles from "./App.module.scss";
-import { ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS } from "@/constants";
+import { ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS } from "@/features/announcement/announcements";
 import { formatTime } from "@/utils";
 import { useKoreanClock } from "@/hooks/useKoreanClock";
 import { useScheduler, getDayType } from "@/features/announcement/hooks/useScheduler";

@@ -1,5 +1,5 @@
 import type { Schedule, AnnouncementTimeRangeSettings } from "@/features/announcement/types/schedule";
-import { ANNOUNCEMENT_DEFS, STORAGE_KEY, TIME_RANGE_STORAGE_KEY } from "./constants";
+import { ANNOUNCEMENT_DEFS, STORAGE_KEY, TIME_RANGE_STORAGE_KEY } from "@/features/announcement/announcements";
 
 export function stripExtension(filename: string): string {
   return filename.replace(/\.[^.]+$/, "");

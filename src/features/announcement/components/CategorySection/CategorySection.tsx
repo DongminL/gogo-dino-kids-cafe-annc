@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./CategorySection.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
-import { CATEGORY_LABELS } from "@/constants";
+import { CATEGORY_LABELS } from "@/features/announcement/announcements";
 import { AnnouncementCard } from "@/features/announcement/components/AnnouncementCard/AnnouncementCard";
 import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
 import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
