@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import clsx from "clsx";
-import styles from "./ScheduleSettings.module.scss";
+import styles from "@/features/announcement/components/ScheduleSettings/ScheduleSettings.module.scss";
 import type { Schedule, ScheduleType } from "@/features/announcement/types/schedule";
 import { TimePicker } from "@/components/TimePicker/TimePicker";
 import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
-import { ANNOUNCEMENT_DEFS } from "@/constants";
+import { ANNOUNCEMENT_DEFS } from "@/features/announcement/announcements";
 
 export function ScheduleSettings(): React.ReactNode {
   const { openSettingsId, schedules, updateSchedule, toggleSettings } = useAnnouncementStore();

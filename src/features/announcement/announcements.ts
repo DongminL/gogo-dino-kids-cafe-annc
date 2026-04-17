@@ -1,8 +1,13 @@
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Category } from "@/features/announcement/types/category";
-import type { ScheduleType } from "@/features/announcement/types/schedule";
 
 export const STORAGE_KEY = "annc-schedules";
+
+export const CATEGORY_LABELS: Record<Category, string> = {
+  attraction: "어트랙션 운영",
+  closing: "마감 안내 방송",
+  etiquette: "이용 에티켓 방송",
+};
 export const TIME_RANGE_STORAGE_KEY = "annc-time-range";
 
 export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
@@ -85,20 +90,6 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
   },
 ];
 
-export const CATEGORY_LABELS: Record<Category, string> = {
-  attraction: "어트랙션 운영",
-  closing: "마감 안내 방송",
-  etiquette: "이용 에티켓 방송",
-};
-
-export const SCHEDULE_TYPE_LABELS: Record<ScheduleType, string> = {
-  once: "특정 시각 1회",
-  "odd-hour": "매 홀수 시각 정각",
-  "even-hour": "매 짝수 시각 정각",
-  interval: "반복 간격",
-};
-
-/** 카테고리별로 그룹화된 방송 목록 (정적 데이터이므로 모듈 수준에서 미리 계산) */
 export const ANNOUNCEMENTS_BY_CATEGORY = (
   Object.keys(CATEGORY_LABELS) as Category[]
 ).reduce<Record<Category, AnnouncementDef[]>>(

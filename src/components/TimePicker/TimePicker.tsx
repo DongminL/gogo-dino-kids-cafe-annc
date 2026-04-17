@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import clsx from "clsx";
-import styles from "./TimePicker.module.scss";
+import styles from "@/components/TimePicker/TimePicker.module.scss";
 
 interface TimePickerProps {
   mode: "once" | "odd-hour" | "even-hour";

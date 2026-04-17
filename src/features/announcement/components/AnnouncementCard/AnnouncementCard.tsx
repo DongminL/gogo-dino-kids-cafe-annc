@@ -1,6 +1,6 @@
 import React from "react";
 import clsx from "clsx";
-import styles from "./AnnouncementCard.module.scss";
+import styles from "@/features/announcement/components/AnnouncementCard/AnnouncementCard.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Schedule } from "@/features/announcement/types/schedule";
 import { getScheduleLabel } from "@/utils";

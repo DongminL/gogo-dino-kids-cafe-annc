@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getKoreanTime } from "../utils";
+import { getKoreanTime } from "@/utils";
 
 export function useKoreanClock(): Date {
   const [currentTime, setCurrentTime] = useState<Date>(getKoreanTime);

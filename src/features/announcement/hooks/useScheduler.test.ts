@@ -1,5 +1,5 @@
-import { shouldFire, getDayType, isInTimeRange } from "./useScheduler";
-import type { Schedule } from "../types/schedule";
+import { shouldFire, getDayType, isInTimeRange } from "@/features/announcement/hooks/useScheduler";
+import type { Schedule } from "@/features/announcement/types/schedule";
 
 const base: Schedule = { type: "once", time: "00:00", intervalMinutes: 30, enabled: true };
 

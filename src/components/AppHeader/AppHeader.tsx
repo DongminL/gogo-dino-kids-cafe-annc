@@ -1,7 +1,7 @@
 import React from "react";
-import styles from "./AppHeader.module.scss";
-import { VolumeControl } from "../VolumeControl/VolumeControl";
-import { formatTime } from "../../utils";
+import styles from "@/components/AppHeader/AppHeader.module.scss";
+import { VolumeControl } from "@/components/VolumeControl/VolumeControl";
+import { formatTime } from "@/utils";
 
 interface AppHeaderProps {
   currentTime: Date;

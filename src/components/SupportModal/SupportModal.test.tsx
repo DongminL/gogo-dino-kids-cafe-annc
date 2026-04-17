@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { SupportModal } from "./SupportModal";
+import { SupportModal } from "@/components/SupportModal/SupportModal";
 import { GITHUB_WIKI_URL, GOOGLE_FORM_URL } from "@/support-links";
 
 beforeEach(() => {

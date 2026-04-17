@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { useAudioPlayer } from "./useAudioPlayer";
+import { useAudioPlayer } from "@/features/announcement/hooks/useAudioPlayer";
 import { resetAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
 
 // ─── HTMLAudioElement 모킹 ────────────────────────────────────────────────────

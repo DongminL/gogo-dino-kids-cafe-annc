@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { AudioControls } from "./AudioControls";
+import { AudioControls } from "@/components/AudioControls/AudioControls";
 
 describe("AudioControls", () => {
   it("현재/전체 시간을 올바르게 표시한다", () => {

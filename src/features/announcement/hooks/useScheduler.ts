@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Schedule, AnnouncementTimeRangeSettings, DayType } from "@/features/announcement/types/schedule";
-import { ANNOUNCEMENT_DEFS } from "@/constants";
+import { ANNOUNCEMENT_DEFS } from "@/features/announcement/announcements";
 
 export function shouldFire(schedule: Schedule, hh: number, mm: number): boolean {
   if (!schedule.enabled) return false;

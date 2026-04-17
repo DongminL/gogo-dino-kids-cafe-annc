@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { AppHeader } from "./AppHeader";
+import { AppHeader } from "@/components/AppHeader/AppHeader";
 
 describe("AppHeader", () => {
   it("현재 시각을 HH:MM:SS 형식으로 표시한다", () => {

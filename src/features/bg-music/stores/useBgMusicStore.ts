@@ -2,9 +2,9 @@ import { create } from "zustand";
 import { STORAGE_KEY, loadSettings as loadBgMusicSettings } from "@/features/bg-music/bgMusicSettings";
 import type { BgMusicSettings } from "@/features/bg-music/bgMusicSettings";
 import type { Track, Playlist } from "@/features/bg-music/types/bgMusic";
-import { createPlaybackSlice, type PlaybackSlice } from "./createPlaybackSlice";
-import { createFadeSlice, type FadeSlice } from "./createFadeSlice";
-import { createLibrarySlice, type LibrarySlice } from "./createLibrarySlice";
+import { createPlaybackSlice, type PlaybackSlice } from "@/features/bg-music/stores/createPlaybackSlice";
+import { createFadeSlice, type FadeSlice } from "@/features/bg-music/stores/createFadeSlice";
+import { createLibrarySlice, type LibrarySlice } from "@/features/bg-music/stores/createLibrarySlice";
 
 export interface BgMusicStore extends PlaybackSlice, FadeSlice, LibrarySlice {
   settings: BgMusicSettings;

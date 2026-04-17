@@ -1,5 +1,5 @@
-import type { Schedule } from "./schedule";
-import type { Category } from "./category";
+import type { Schedule } from "@/features/announcement/types/schedule";
+import type { Category } from "@/features/announcement/types/category";
 
 export interface AnnouncementDef {
   id: string;
