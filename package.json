@@ -2,13 +2,15 @@
   "name": "gogo-dino-annc",
   "version": "1.2.0",
   "private": true,
-  "main": "public/electron.js",
+  "main": "build/electron/main.js",
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "electron": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "dist": "vite build && electron-builder --win",
-    "dist:publish": "vite build && electron-builder --win --publish always",
+    "electron:build": "node ./node_modules/typescript/bin/tsc -p tsconfig.electron.json",
+    "electron:watch": "node ./node_modules/typescript/bin/tsc -p tsconfig.electron.json --watch",
+    "electron": "npm run electron:build && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\" \"npm run electron:watch\"",
+    "dist": "vite build && npm run electron:build && electron-builder --win",
+    "dist:publish": "vite build && npm run electron:build && electron-builder --win --publish always",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
@@ -20,10 +22,7 @@
     "productName": "고고 다이노 안내 방송",
     "files": [
       "build/**/*",
-      "!build/**/*.map",
-      "public/electron.js",
-      "public/preload.js",
-      "public/logo.png"
+      "!build/**/*.map"
     ],
     "compression": "maximum",
     "asar": true,
@@ -66,6 +65,7 @@
     "react-dom": "^19.2.4",
     "sass": "^1.98.0",
     "ts-jest": "^29.4.6",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.0.0",
     "vite": "^6.0.0",
     "wait-on": "^9.0.4"
