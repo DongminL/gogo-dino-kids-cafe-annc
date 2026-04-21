@@ -1,30 +1,34 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 import type { ElectronAPI, UpdateInfo, DownloadProgress } from "@/types/electron";
+import { IPC } from "./ipcChannels";
+
+function makeListener<T>(channel: string) {
+  return (callback: (data: T) => void) =>
+    ipcRenderer.on(channel, (_event, data: T) => callback(data));
+}
+
+const UPDATE_CHANNELS = [
+  IPC.UPDATE_AVAILABLE,
+  IPC.UPDATE_NOT_AVAILABLE,
+  IPC.UPDATE_DOWNLOADED,
+  IPC.DOWNLOAD_PROGRESS,
+  IPC.UPDATE_ERROR,
+] as const;
 
 const api: ElectronAPI = {
-  openExternal: (url: string) => ipcRenderer.send("open-external", url),
-  checkForUpdates: () => ipcRenderer.send("check-for-updates"),
-  downloadUpdate: () => ipcRenderer.send("download-update"),
-  installUpdate: () => ipcRenderer.send("install-update"),
+  openExternal: (url) => ipcRenderer.send(IPC.OPEN_EXTERNAL, url),
+  checkForUpdates: () => ipcRenderer.send(IPC.CHECK_FOR_UPDATES),
+  downloadUpdate: () => ipcRenderer.send(IPC.DOWNLOAD_UPDATE),
+  installUpdate: () => ipcRenderer.send(IPC.INSTALL_UPDATE),
 
-  onUpdateAvailable: (callback: (info: UpdateInfo) => void) =>
-    ipcRenderer.on("update-available", (_event: IpcRendererEvent, info: UpdateInfo) => callback(info)),
-  onUpdateNotAvailable: (callback: (info: UpdateInfo) => void) =>
-    ipcRenderer.on("update-not-available", (_event: IpcRendererEvent, info: UpdateInfo) => callback(info)),
-  onUpdateDownloaded: (callback: (info: UpdateInfo) => void) =>
-    ipcRenderer.on("update-downloaded", (_event: IpcRendererEvent, info: UpdateInfo) => callback(info)),
-  onDownloadProgress: (callback: (progress: DownloadProgress) => void) =>
-    ipcRenderer.on("download-progress", (_event: IpcRendererEvent, progress: DownloadProgress) => callback(progress)),
-  onUpdateError: (callback: (error: string) => void) =>
-    ipcRenderer.on("update-error", (_event: IpcRendererEvent, error: string) => callback(error)),
+  onUpdateAvailable: makeListener<UpdateInfo>(IPC.UPDATE_AVAILABLE),
+  onUpdateNotAvailable: makeListener<UpdateInfo>(IPC.UPDATE_NOT_AVAILABLE),
+  onUpdateDownloaded: makeListener<UpdateInfo>(IPC.UPDATE_DOWNLOADED),
+  onDownloadProgress: makeListener<DownloadProgress>(IPC.DOWNLOAD_PROGRESS),
+  onUpdateError: makeListener<string>(IPC.UPDATE_ERROR),
 
-  removeUpdateListeners: () => {
-    ipcRenderer.removeAllListeners("update-available");
-    ipcRenderer.removeAllListeners("update-not-available");
-    ipcRenderer.removeAllListeners("update-downloaded");
-    ipcRenderer.removeAllListeners("download-progress");
-    ipcRenderer.removeAllListeners("update-error");
-  },
+  removeUpdateListeners: () =>
+    UPDATE_CHANNELS.forEach((ch) => ipcRenderer.removeAllListeners(ch)),
 };
 
 contextBridge.exposeInMainWorld("electronAPI", api);

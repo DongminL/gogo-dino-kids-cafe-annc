@@ -4,6 +4,7 @@ import Store from "electron-store";
 import { autoUpdater } from "electron-updater";
 import type { Rectangle } from "electron";
 import type { UpdateInfo, ProgressInfo } from "electron-updater";
+import { IPC } from "./ipcChannels";
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -121,26 +122,26 @@ function setupAutoUpdater(): void {
   autoUpdater.autoInstallOnAppQuit = true;
 
   autoUpdater.on("update-available", (info: UpdateInfo) => {
-    win?.webContents.send("update-available", info);
+    win?.webContents.send(IPC.UPDATE_AVAILABLE, info);
   });
 
   autoUpdater.on("update-not-available", (info: UpdateInfo) => {
-    win?.webContents.send("update-not-available", info);
+    win?.webContents.send(IPC.UPDATE_NOT_AVAILABLE, info);
   });
 
   autoUpdater.on("download-progress", (progress: ProgressInfo) => {
-    win?.webContents.send("download-progress", progress);
+    win?.webContents.send(IPC.DOWNLOAD_PROGRESS, progress);
   });
 
   autoUpdater.on("update-downloaded", (info: UpdateInfo) => {
-    win?.webContents.send("update-downloaded", info);
+    win?.webContents.send(IPC.UPDATE_DOWNLOADED, info);
   });
 
   autoUpdater.on("error", (error: Error) => {
-    win?.webContents.send("update-error", error.message);
+    win?.webContents.send(IPC.UPDATE_ERROR, error.message);
   });
 
-  ipcMain.on("open-external", (_event, url: unknown) => {
+  ipcMain.on(IPC.OPEN_EXTERNAL, (_event, url: unknown) => {
     if (
       typeof url === "string" &&
       (url.startsWith("https://github.com") || url.startsWith("https://forms.gle"))
@@ -148,9 +149,9 @@ function setupAutoUpdater(): void {
       shell.openExternal(url);
     }
   });
-  ipcMain.on("check-for-updates", () => autoUpdater.checkForUpdates());
-  ipcMain.on("download-update", () => autoUpdater.downloadUpdate());
-  ipcMain.on("install-update", () => {
+  ipcMain.on(IPC.CHECK_FOR_UPDATES, () => autoUpdater.checkForUpdates());
+  ipcMain.on(IPC.DOWNLOAD_UPDATE, () => autoUpdater.downloadUpdate());
+  ipcMain.on(IPC.INSTALL_UPDATE, () => {
     saveWindowBounds();
     autoUpdater.quitAndInstall(true, true);
   });
