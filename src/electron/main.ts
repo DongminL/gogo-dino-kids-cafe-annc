@@ -4,7 +4,7 @@ import Store from "electron-store";
 import { autoUpdater } from "electron-updater";
 import type { Rectangle } from "electron";
 import type { UpdateInfo, ProgressInfo } from "electron-updater";
-import { IPC } from "./ipcChannels";
+import { IPC } from "@/electron/ipcChannels";
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {

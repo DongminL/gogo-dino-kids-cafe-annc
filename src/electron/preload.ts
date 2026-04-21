@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { ElectronAPI, UpdateInfo, DownloadProgress } from "@/types/electron";
-import { IPC } from "./ipcChannels";
+import { IPC } from "@/electron/ipcChannels";
 
 function makeListener<T>(channel: string) {
   return (callback: (data: T) => void) =>
