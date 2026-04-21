@@ -11,8 +11,8 @@ function copyPublicAssetsPlugin() {
       const srcDir = resolve('public');
       const destDir = resolve('build');
       if (!existsSync(destDir)) mkdirSync(destDir, { recursive: true });
-      // electron.js, index.html 은 제외하고 나머지(wav, png 등) 복사
-      const skip = new Set(['index.html', 'electron.js']);
+      // index.html 은 제외하고 나머지(wav, png 등) 복사
+      const skip = new Set(['index.html']);
       for (const file of readdirSync(srcDir)) {
         if (!skip.has(file)) {
           copyFileSync(join(srcDir, file), join(destDir, file));

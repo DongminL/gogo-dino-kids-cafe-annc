@@ -1,17 +1,6 @@
 import { create } from "zustand";
 import type { UpdateStatus } from "@/hooks/useUpdater";
-
-interface UpdateInfo {
-  version: string;
-  releaseNotes?: string;
-}
-
-interface DownloadProgress {
-  percent: number;
-  bytesPerSecond: number;
-  transferred: number;
-  total: number;
-}
+import type { UpdateInfo, DownloadProgress } from "@/types/electron";
 
 interface UpdaterStore {
   status: UpdateStatus;
