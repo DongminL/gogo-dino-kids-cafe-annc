@@ -65,7 +65,7 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "식기 반납",
     category: "closing",
     audioFile: "announcements/return-dishes.mp3",
-    defaultSchedule: { type: "once", time: "19:15", intervalMinutes: 30, enabled: false },
+    defaultSchedule: { type: "once", time: "19:20", intervalMinutes: 30, enabled: false },
   },
   {
     id: "room-ab",
@@ -86,7 +86,7 @@ export const ANNOUNCEMENT_DEFS: AnnouncementDef[] = [
     title: "양말 착용",
     category: "etiquette",
     audioFile: "announcements/socks.mp3",
-    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 33, enabled: false },
+    defaultSchedule: { type: "once", time: "00:00", intervalMinutes: 43, enabled: false },
   },
 ];
 
