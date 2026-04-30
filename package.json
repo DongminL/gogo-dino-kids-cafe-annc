@@ -74,6 +74,7 @@
     "wait-on": "^9.0.4"
   },
   "dependencies": {
+    "@hyunbinseo/holidays-kr": "^4.2026.0",
     "clsx": "^2.1.1",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.8.3",
