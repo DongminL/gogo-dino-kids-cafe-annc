@@ -6,6 +6,7 @@
     "allowImportingTsExtensions": false,
     "noEmit": false,
     "esModuleInterop": true,
+    "allowJs": true,
     "types": ["jest", "@testing-library/jest-dom"]
   }
 }

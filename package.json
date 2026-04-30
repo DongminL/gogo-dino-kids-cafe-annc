@@ -1,14 +1,18 @@
 {
   "name": "gogo-dino-annc",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
-  "main": "public/electron.js",
+  "main": "build/electron/main.js",
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "electron": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "dist": "vite build && electron-builder --win",
-    "dist:publish": "vite build && electron-builder --win --publish always",
+    "main:bundle": "esbuild src/electron/main.ts --bundle --platform=node --format=cjs --target=node22 --external:electron --external:electron-store --external:electron-updater --tsconfig=tsconfig.electron.json --outfile=build/electron/main.js",
+    "preload:bundle": "esbuild src/electron/preload.ts --bundle --platform=node --format=cjs --target=node22 --external:electron --tsconfig=tsconfig.electron.json --outfile=build/electron/preload.js",
+    "electron:build": "node ./node_modules/typescript/bin/tsc -p tsconfig.electron.json && npm run main:bundle && npm run preload:bundle",
+    "electron:watch": "concurrently \"npm run main:bundle -- --watch\" \"npm run preload:bundle -- --watch\"",
+    "electron": "npm run electron:build && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\" \"npm run electron:watch\"",
+    "dist": "vite build && npm run electron:build && electron-builder --win",
+    "dist:publish": "vite build && npm run electron:build && electron-builder --win --publish always",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
@@ -20,10 +24,7 @@
     "productName": "고고 다이노 안내 방송",
     "files": [
       "build/**/*",
-      "!build/**/*.map",
-      "public/electron.js",
-      "public/preload.js",
-      "public/logo.png"
+      "!build/**/*.map"
     ],
     "compression": "maximum",
     "asar": true,
@@ -59,6 +60,7 @@
     "cross-env": "^10.1.0",
     "electron": "^41.0.3",
     "electron-builder": "^26.8.1",
+    "esbuild": "^0.28.0",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "lucide-react": "^0.577.0",
@@ -66,11 +68,13 @@
     "react-dom": "^19.2.4",
     "sass": "^1.98.0",
     "ts-jest": "^29.4.6",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.0.0",
     "vite": "^6.0.0",
     "wait-on": "^9.0.4"
   },
   "dependencies": {
+    "@hyunbinseo/holidays-kr": "^4.2026.0",
     "clsx": "^2.1.1",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.8.3",

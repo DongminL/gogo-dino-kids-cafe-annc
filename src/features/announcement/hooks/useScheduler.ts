@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Schedule, AnnouncementTimeRangeSettings, DayType } from "@/features/announcement/types/schedule";
 import { ANNOUNCEMENT_DEFS } from "@/features/announcement/announcements";
+import { isKoreanHoliday } from "@/features/announcement/holidays";
 
 export function shouldFire(schedule: Schedule, hh: number, mm: number): boolean {
   if (!schedule.enabled) return false;
@@ -28,7 +29,9 @@ export function shouldFire(schedule: Schedule, hh: number, mm: number): boolean 
 
 export function getDayType(date: Date): DayType {
   const day = date.getDay(); // 0=일, 6=토
-  return day === 0 || day === 6 ? "holiday" : "weekday";
+  if (day === 0 || day === 6) return "holiday";
+  if (isKoreanHoliday(date)) return "holiday";
+  return "weekday";
 }
 
 export function isInTimeRange(start: string, end: string, hh: number, mm: number): boolean {

@@ -1,16 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-
-interface UpdateInfo {
-  version: string;
-  releaseNotes?: string;
-}
-
-interface DownloadProgress {
-  percent: number;
-  bytesPerSecond: number;
-  transferred: number;
-  total: number;
-}
+import type { UpdateInfo, DownloadProgress } from "@/types/electron";
 
 export type UpdateStatus =
   | 'idle'
@@ -30,23 +19,6 @@ export interface UseUpdaterResult {
   downloadUpdate: () => void;
   installUpdate: () => void;
   dismiss: () => void;
-}
-
-declare global {
-  interface Window {
-    electronAPI?: {
-      openExternal: (url: string) => void;
-      checkForUpdates: () => void;
-      downloadUpdate: () => void;
-      installUpdate: () => void;
-      onUpdateAvailable: (callback: (info: UpdateInfo) => void) => void;
-      onUpdateNotAvailable: (callback: (info: UpdateInfo) => void) => void;
-      onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => void;
-      onDownloadProgress: (callback: (progress: DownloadProgress) => void) => void;
-      onUpdateError: (callback: (error: string) => void) => void;
-      removeUpdateListeners: () => void;
-    };
-  }
 }
 
 export function useUpdater(): UseUpdaterResult {
