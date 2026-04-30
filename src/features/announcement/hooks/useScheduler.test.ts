@@ -83,7 +83,7 @@ describe("shouldFire", () => {
 
 describe("getDayType", () => {
   it("월요일(1) → weekday", () => {
-    const date = new Date(2024, 0, 1); // 2024-01-01 is Monday
+    const date = new Date(2024, 0, 8); // 2024-01-08 is Monday (not a holiday)
     expect(getDayType(date)).toBe("weekday");
   });
 
@@ -100,6 +100,26 @@ describe("getDayType", () => {
   it("토요일(6) → holiday", () => {
     const date = new Date(2024, 0, 6); // 2024-01-06 is Saturday
     expect(getDayType(date)).toBe("holiday");
+  });
+
+  it("평일 공휴일(2026-05-01 노동절, 금요일) → holiday", () => {
+    expect(getDayType(new Date(2026, 4, 1))).toBe("holiday");
+  });
+
+  it("평일 공휴일(2026-05-05 어린이날, 화요일) → holiday", () => {
+    expect(getDayType(new Date(2026, 4, 5))).toBe("holiday");
+  });
+
+  it("대체공휴일(2026-08-17 월요일, 광복절 대체) → holiday", () => {
+    expect(getDayType(new Date(2026, 7, 17))).toBe("holiday");
+  });
+
+  it("일반 평일(2026-04-30 목요일) → weekday", () => {
+    expect(getDayType(new Date(2026, 3, 30))).toBe("weekday");
+  });
+
+  it("데이터 없는 연도의 평일은 weekday (예: 2030-05-07 화요일)", () => {
+    expect(getDayType(new Date(2030, 4, 7))).toBe("weekday");
   });
 });
 
