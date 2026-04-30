@@ -18,8 +18,5 @@ export function isKoreanHoliday(date: Date): boolean {
 
   if (!data) return false;
 
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  
-  return `${yyyy}-${mm}-${dd}` in data;
+  return date.toLocaleDateString("sv") in data;
 }
