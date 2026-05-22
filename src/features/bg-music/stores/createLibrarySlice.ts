@@ -15,7 +15,7 @@ type LibraryGet = () => {
   stopInternal: () => void;
 };
 
-type LibrarySet = (partial: { settings: BgMusicSettings }) => void;
+type LibrarySet = (partial: Partial<{ settings: BgMusicSettings; playingTrackIndex: number }>) => void;
 
 export interface LibrarySlice {
   addTrack: (file: File, playlistId?: string, onProgress?: (progress: number) => void) => Promise<void>;
@@ -77,7 +77,15 @@ export function createLibrarySlice(
         ? null
         : state.settings.playlists.find((p) => p.id === state.playingPlaylistId) ?? null;
       const trackIds = pl ? pl.trackIds : state.settings.trackMeta.map((t) => t.id);
-      if (trackIds[ctx.playingTrackIndexRef.current] === trackId) state.stopInternal();
+      if (trackIds[ctx.playingTrackIndexRef.current] === trackId) {
+        state.stopInternal();
+      } else {
+        const removedIndex = trackIds.indexOf(trackId);
+        if (removedIndex !== -1 && removedIndex < ctx.playingTrackIndexRef.current) {
+          ctx.playingTrackIndexRef.current -= 1;
+          set({ playingTrackIndex: ctx.playingTrackIndexRef.current });
+        }
+      }
 
       updateSettings((prev) => ({
         ...prev,
@@ -134,8 +142,13 @@ export function createLibrarySlice(
       const state = get();
       const targetPlaylist = state.settings.playlists.find((p) => p.id === playlistId);
       if (!targetPlaylist) return;
-      if (playlistId === state.playingPlaylistId && ctx.playingTrackIndexRef.current === index) {
-        state.stopInternal();
+      if (playlistId === state.playingPlaylistId) {
+        if (ctx.playingTrackIndexRef.current === index) {
+          state.stopInternal();
+        } else if (ctx.playingTrackIndexRef.current > index) {
+          ctx.playingTrackIndexRef.current -= 1;
+          set({ playingTrackIndex: ctx.playingTrackIndexRef.current });
+        }
       }
       updateSettings((prev) => ({
         ...prev,
