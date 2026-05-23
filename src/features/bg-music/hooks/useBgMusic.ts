@@ -1,114 +1,22 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { STORAGE_KEY, loadSettings } from "@/features/bg-music/bgMusicSettings";
-import { requestPersistentStorage } from "@/db/trackStorage";
-import { useBgMusicFade } from "@/features/bg-music/hooks/useBgMusicFade";
-import { usePlayback } from "@/features/bg-music/hooks/useBgMusicPlayback";
-import { useLibrary } from "@/features/bg-music/hooks/useBgMusicLibrary";
+import { useEffect } from "react";
+import { loadSettings } from "@/features/bg-music/bgMusicSettings";
+import { useBgMusicStore } from "@/features/bg-music/stores/useBgMusicStore";
 
 export function useBgMusic() {
-  const [settings, setSettings] = useState(loadSettings);
-  const settingsRef = useRef(settings);
-  const volumeRef = useRef(settings.volume);
-  const isFadedRef = useRef(false);
+  const store = useBgMusicStore();
 
   useEffect(() => {
-    settingsRef.current = settings;
-    volumeRef.current = settings.volume;
-  }, [settings]);
-
-  const {
-    audioRef,
-    isPlaying,
-    playingPlaylistId,
-    playingTrackIndex,
-    playingTrackIndexRef,
-    setPlayingTrackIndex,
-    progress,
-    stopInternal,
-    play,
-    togglePlay,
-    next,
-    prev,
-    seek,
-  } = usePlayback({
-    settingsRef,
-    volumeRef,
-    isFadedRef,
-    initialPlaylistId: settings.currentPlaylistId,
-    initialTrackIndex: settings.currentTrackIndex,
-  });
-
-  const { clearFadeTimer, fadeOut, fadeIn } = useBgMusicFade(audioRef, volumeRef, isFadedRef);
-
-  const library = useLibrary({
-    settingsRef,
-    setSettings,
-    playingPlaylistId,
-    playingTrackIndexRef,
-    setPlayingTrackIndex,
-    stopInternal,
-  });
-
-  // localStorage 동기화
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...settings, currentTrackIndex: playingTrackIndex })
-    );
-  }, [settings, playingTrackIndex]);
-
-  // 마운트 시 persistent storage 요청
-  useEffect(() => {
-    requestPersistentStorage();
+    // 마운트 시 localStorage에서 최신 설정을 읽어 스토어와 동기화한 뒤 초기화
+    const freshSettings = loadSettings();
+    useBgMusicStore.setState({ settings: freshSettings });
+    useBgMusicStore.getState().init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 자동 재생
-  const autoplayDoneRef = useRef(false);
-  useEffect(() => {
-    if (autoplayDoneRef.current) return;
-    autoplayDoneRef.current = true;
-    const s = settingsRef.current;
-    if (!s.autoplay) return;
-    if (s.currentPlaylistId) {
-      const playlist = s.playlists.find((p) => p.id === s.currentPlaylistId);
-      if (playlist && playlist.trackIds.length > 0) {
-        const idx = Math.min(s.currentTrackIndex, playlist.trackIds.length - 1);
-        play(idx);
-      }
-    } else if (s.trackMeta.length > 0) {
-      const idx = Math.min(s.currentTrackIndex, s.trackMeta.length - 1);
-      play(idx);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const { settings, playingPlaylistId, playingTrackIndex } = store;
 
-  // 언마운트 시 정리
-  useEffect(() => {
-    return () => {
-      clearFadeTimer();
-      stopInternal();
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const setVolume = useCallback(
-    (v: number) => {
-      volumeRef.current = v;
-      if (audioRef.current && !isFadedRef.current) {
-        audioRef.current.volume = v;
-      }
-      setSettings((prev) => ({ ...prev, volume: v }));
-    },
-    [audioRef]
-  );
-
-  const setAutoplay = useCallback((v: boolean) => {
-    setSettings((prev) => ({ ...prev, autoplay: v }));
-  }, []);
-
-  const playingPlaylist = settings.playlists.find((p) => p.id === playingPlaylistId) ?? null;
-  const currentTrack = playingPlaylist
-    ? (settings.trackMeta.find(
-        (t) => t.id === playingPlaylist.trackIds[playingTrackIndex]
-      ) ?? null)
+  const currentPlaylist = settings.playlists.find((p) => p.id === playingPlaylistId) ?? null;
+  const currentTrack = currentPlaylist
+    ? (settings.trackMeta.find((t) => t.id === currentPlaylist.trackIds[playingTrackIndex]) ?? null)
     : playingPlaylistId === null
     ? (settings.trackMeta[playingTrackIndex] ?? null)
     : null;
@@ -118,23 +26,32 @@ export function useBgMusic() {
     playlists: settings.playlists,
     currentPlaylistId: settings.currentPlaylistId,
     playingPlaylistId,
-    currentPlaylist: playingPlaylist,
+    currentPlaylist,
     currentTrack,
     currentTrackIndex: playingTrackIndex,
-    isPlaying,
-    progress,
+    isPlaying: store.isPlaying,
+    progress: store.progress,
     volume: settings.volume,
     autoplay: settings.autoplay,
     loopAll: settings.loopAll,
-    ...library,
-    play,
-    togglePlay,
-    next,
-    prev,
-    seek,
-    setVolume,
-    setAutoplay,
-    fadeOut,
-    fadeIn,
+    addTrack: store.addTrack,
+    removeTrack: store.removeTrack,
+    createPlaylist: store.createPlaylist,
+    deletePlaylist: store.deletePlaylist,
+    setCurrentPlaylist: store.setCurrentPlaylist,
+    addTrackToPlaylist: store.addTrackToPlaylist,
+    setLoop: store.setLoop,
+    removeTrackFromPlaylist: store.removeTrackFromPlaylist,
+    setPlaylistTracks: store.setPlaylistTracks,
+    reorderTrack: store.reorderTrack,
+    play: store.play,
+    togglePlay: store.togglePlay,
+    next: store.next,
+    prev: store.prev,
+    seek: store.seek,
+    setVolume: store.setVolume,
+    setAutoplay: store.setAutoplay,
+    fadeOut: store.fadeOut,
+    fadeIn: store.fadeIn,
   };
 }
