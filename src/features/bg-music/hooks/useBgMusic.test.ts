@@ -1201,3 +1201,147 @@ describe("전체 음악 목록 (Default Playlist)", () => {
     expect(result.current.tracks.map(t => t.id)).toEqual([idB, idA]);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("재생 중 삭제 — 인덱스 보정 (버그 수정 회귀)", () => {
+  async function setupWithThreeTracks() {
+    const { result } = renderHook(() => useBgMusic());
+
+    act(() => {
+      result.current.createPlaylist("세 트랙 플레이리스트");
+    });
+    const playlistId = result.current.playlists[0].id;
+
+    for (const name of ["a.mp3", "b.mp3", "c.mp3"]) {
+      await act(async () => {
+        await result.current.addTrack(new File(["audio"], name, { type: "audio/mpeg" }), playlistId);
+      });
+    }
+
+    return { result, playlistId };
+  }
+
+  it("removeTrack: 재생 인덱스 앞의 트랙 삭제 시 currentTrackIndex 감소, 재생 유지", async () => {
+    const { result, playlistId } = await setupWithThreeTracks();
+
+    act(() => { result.current.setCurrentPlaylist(playlistId); });
+    await act(async () => { result.current.play(2); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(result.current.currentTrackIndex).toBe(2);
+
+    const firstTrackId = result.current.playlists[0].trackIds[0];
+    await act(async () => {
+      await result.current.removeTrack(firstTrackId);
+    });
+
+    expect(result.current.isPlaying).toBe(true);
+    expect(result.current.currentTrackIndex).toBe(1);
+  });
+
+  it("removeTrackFromPlaylist: 재생 인덱스 앞의 트랙 제거 시 currentTrackIndex 감소, 재생 유지", async () => {
+    const { result, playlistId } = await setupWithThreeTracks();
+
+    act(() => { result.current.setCurrentPlaylist(playlistId); });
+    await act(async () => { result.current.play(2); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(result.current.currentTrackIndex).toBe(2);
+
+    act(() => {
+      result.current.removeTrackFromPlaylist(playlistId, 0);
+    });
+
+    expect(result.current.isPlaying).toBe(true);
+    expect(result.current.currentTrackIndex).toBe(1);
+  });
+
+  it("deletePlaylist: 재생 중인 플레이리스트 삭제 시 즉시 재생 정지", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    act(() => {
+      result.current.createPlaylist("재생 플레이리스트");
+      result.current.createPlaylist("다른 플레이리스트");
+    });
+    const [pl1, pl2] = result.current.playlists;
+
+    await act(async () => {
+      await result.current.addTrack(new File(["a"], "a.mp3"), pl1.id);
+      await result.current.addTrack(new File(["b"], "b.mp3"), pl2.id);
+    });
+
+    act(() => { result.current.setCurrentPlaylist(pl1.id); });
+    await act(async () => { result.current.play(0); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(result.current.playingPlaylistId).toBe(pl1.id);
+
+    act(() => {
+      result.current.deletePlaylist(pl1.id);
+    });
+
+    expect(result.current.isPlaying).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("setPlaylistTracks", () => {
+  it("플레이리스트 트랙 순서 일괄 변경", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    act(() => { result.current.createPlaylist("순서 변경 테스트"); });
+    const playlistId = result.current.playlists[0].id;
+
+    for (const name of ["a.mp3", "b.mp3", "c.mp3"]) {
+      await act(async () => {
+        await result.current.addTrack(new File(["audio"], name), playlistId);
+      });
+    }
+
+    const [idA, idB, idC] = result.current.playlists[0].trackIds;
+
+    act(() => {
+      result.current.setPlaylistTracks(playlistId, [idC, idA, idB]);
+    });
+
+    expect(result.current.playlists[0].trackIds).toEqual([idC, idA, idB]);
+  });
+
+  it("전체 음악 목록(null) 트랙 순서 일괄 변경", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    for (const name of ["a.mp3", "b.mp3", "c.mp3"]) {
+      await act(async () => {
+        await result.current.addTrack(new File(["audio"], name));
+      });
+    }
+
+    const [idA, idB, idC] = result.current.tracks.map((t) => t.id);
+
+    act(() => {
+      result.current.setPlaylistTracks(null, [idC, idB, idA]);
+    });
+
+    expect(result.current.tracks.map((t) => t.id)).toEqual([idC, idB, idA]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("togglePlay — audioRef 없는 상태에서 재시작", () => {
+  it("isPlaying=false이고 오디오 없을 때 togglePlay 호출 시 처음부터 재생 재시작", async () => {
+    const result = await setupWithOneTrack();
+
+    await act(async () => { result.current.play(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+
+    // 트랙 종료 → isPlaying=false, audioRef=null
+    const audio = mockAudioInstances[mockAudioInstances.length - 1];
+    await act(async () => {
+      audio.triggerEnded();
+    });
+    await waitFor(() => expect(result.current.isPlaying).toBe(false));
+
+    // togglePlay → audioRef=null이므로 get().play() 호출 → 재시작
+    await act(async () => {
+      result.current.togglePlay();
+    });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+  });
+});
