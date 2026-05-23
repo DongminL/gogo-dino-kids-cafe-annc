@@ -105,7 +105,7 @@ export function createLibrarySlice(
 
     deletePlaylist: (id) => {
       const state = get();
-      if (state.settings.currentPlaylistId === id) state.stopInternal();
+      if (state.playingPlaylistId === id) state.stopInternal();
       updateSettings((prev) => {
         const remaining = prev.playlists.filter((p) => p.id !== id);
         const newCurrentId = prev.currentPlaylistId === id

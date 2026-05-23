@@ -212,6 +212,7 @@ export function usePlayback({
     playingPlaylistId,
     playingTrackIndex,
     playingTrackIndexRef,
+    setPlayingTrackIndex,
     progress,
     stopInternal,
     play,

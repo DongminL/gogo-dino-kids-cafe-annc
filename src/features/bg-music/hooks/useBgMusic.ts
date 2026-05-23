@@ -22,6 +22,7 @@ export function useBgMusic() {
     playingPlaylistId,
     playingTrackIndex,
     playingTrackIndexRef,
+    setPlayingTrackIndex,
     progress,
     stopInternal,
     play,
@@ -44,6 +45,7 @@ export function useBgMusic() {
     setSettings,
     playingPlaylistId,
     playingTrackIndexRef,
+    setPlayingTrackIndex,
     stopInternal,
   });
 

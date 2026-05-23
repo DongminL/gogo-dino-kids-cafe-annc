@@ -9,6 +9,7 @@ interface UseLibraryOptions {
   setSettings: React.Dispatch<React.SetStateAction<BgMusicSettings>>;
   playingPlaylistId: string | null;
   playingTrackIndexRef: React.MutableRefObject<number>;
+  setPlayingTrackIndex: React.Dispatch<React.SetStateAction<number>>;
   stopInternal: () => void;
 }
 
@@ -17,6 +18,7 @@ export function useLibrary({
   setSettings,
   playingPlaylistId,
   playingTrackIndexRef,
+  setPlayingTrackIndex,
   stopInternal,
 }: UseLibraryOptions) {
   // ─── Track ───────────────────────────────────────────────────────────────────
@@ -66,9 +68,15 @@ export function useLibrary({
           : s.playlists.find((p) => p.id === playingPlaylistId) ?? null;
 
       const trackIds = pl ? pl.trackIds : s.trackMeta.map((t) => t.id);
-      const currentTrackId = trackIds[playingTrackIndexRef.current];
-
-      if (currentTrackId === trackId) stopInternal();
+      if (trackIds[playingTrackIndexRef.current] === trackId) {
+        stopInternal();
+      } else {
+        const removedIndex = trackIds.indexOf(trackId);
+        if (removedIndex !== -1 && removedIndex < playingTrackIndexRef.current) {
+          playingTrackIndexRef.current -= 1;
+          setPlayingTrackIndex(playingTrackIndexRef.current);
+        }
+      }
       setSettings((prev) => ({
         ...prev,
         trackMeta: prev.trackMeta.filter((t) => t.id !== trackId),
@@ -78,7 +86,7 @@ export function useLibrary({
         })),
       }));
     },
-    [settingsRef, playingPlaylistId, playingTrackIndexRef, stopInternal, setSettings]
+    [settingsRef, playingPlaylistId, playingTrackIndexRef, setPlayingTrackIndex, stopInternal, setSettings]
   );
 
   // ─── Playlist ─────────────────────────────────────────────────────────────────
@@ -97,7 +105,7 @@ export function useLibrary({
 
   const deletePlaylist = useCallback(
     (id: string) => {
-      if (settingsRef.current.currentPlaylistId === id) stopInternal();
+      if (playingPlaylistId === id) stopInternal();
       setSettings((prev) => {
         const remaining = prev.playlists.filter((p) => p.id !== id);
         const newCurrentId =
@@ -105,7 +113,7 @@ export function useLibrary({
         return { ...prev, playlists: remaining, currentPlaylistId: newCurrentId };
       });
     },
-    [settingsRef, stopInternal, setSettings]
+    [playingPlaylistId, stopInternal, setSettings]
   );
 
   const setCurrentPlaylist = useCallback(
@@ -148,8 +156,13 @@ export function useLibrary({
       const targetPlaylist = s.playlists.find((p) => p.id === playlistId);
       if (!targetPlaylist) return;
 
-      if (playlistId === playingPlaylistId && playingTrackIndexRef.current === index) {
-        stopInternal();
+      if (playlistId === playingPlaylistId) {
+        if (playingTrackIndexRef.current === index) {
+          stopInternal();
+        } else if (playingTrackIndexRef.current > index) {
+          playingTrackIndexRef.current -= 1;
+          setPlayingTrackIndex(playingTrackIndexRef.current);
+        }
       }
 
       setSettings((prev) => ({
@@ -162,7 +175,7 @@ export function useLibrary({
         }),
       }));
     },
-    [settingsRef, playingPlaylistId, playingTrackIndexRef, stopInternal, setSettings]
+    [settingsRef, playingPlaylistId, playingTrackIndexRef, setPlayingTrackIndex, stopInternal, setSettings]
   );
 
   const setPlaylistTracks = useCallback(
