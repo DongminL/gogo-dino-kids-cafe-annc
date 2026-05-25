@@ -207,6 +207,86 @@ describe("시간 이동", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+describe("큐 재생 (enqueue)", () => {
+  const ann1 = { ...mockAnnouncement, id: "ann-1" };
+  const ann2 = { ...mockAnnouncement, id: "ann-2" };
+  const ann3 = { ...mockAnnouncement, id: "ann-3" };
+
+  it("재생 중일 때 큐에 추가하고 현재 트랙 종료 후 순차 재생", async () => {
+    const { result } = renderHook(() => useAudioPlayer());
+
+    await act(async () => {
+      result.current.play(ann1);
+    });
+    expect(result.current.playingId).toBe("ann-1");
+
+    act(() => {
+      result.current.enqueue(ann2);
+    });
+
+    // ann1 종료 → 큐에서 ann2 자동 재생
+    act(() => {
+      mockAudioInstances[0].triggerEnded();
+    });
+
+    expect(result.current.playingId).toBe("ann-2");
+    expect(mockAudioInstances).toHaveLength(2);
+  });
+
+  it("우선순위 낮은 값이 먼저 재생됨 (priority 1 < 2)", async () => {
+    const { result } = renderHook(() => useAudioPlayer());
+
+    await act(async () => {
+      result.current.play(ann1);
+    });
+
+    // priority 2인 ann3 먼저 큐에 추가, 그 다음 priority 1인 ann2 추가
+    act(() => {
+      result.current.enqueue(ann3, 2);
+      result.current.enqueue(ann2, 1); // 낮은 priority → 앞으로 삽입됨
+    });
+
+    // ann1 종료 → priority 1인 ann2가 먼저 재생
+    act(() => {
+      mockAudioInstances[0].triggerEnded();
+    });
+    expect(result.current.playingId).toBe("ann-2");
+
+    // ann2 종료 → priority 2인 ann3 재생
+    act(() => {
+      mockAudioInstances[1].triggerEnded();
+    });
+    expect(result.current.playingId).toBe("ann-3");
+  });
+
+  it("stop 호출 시 큐 비워짐 — 정지 후 이전 큐 항목이 재생되지 않음", async () => {
+    const { result } = renderHook(() => useAudioPlayer());
+
+    await act(async () => {
+      result.current.play(ann1);
+    });
+    expect(result.current.playingId).toBe("ann-1");
+
+    act(() => {
+      result.current.enqueue(ann2);
+    });
+
+    // stop → 큐 비워짐
+    act(() => {
+      result.current.stop();
+    });
+    expect(result.current.playingId).toBeNull();
+
+    // stop 이후 enqueue → audioRef=null이므로 ann3이 즉시 재생 (ann2는 큐에서 제거됨)
+    await act(async () => {
+      result.current.enqueue(ann3);
+    });
+    expect(result.current.playingId).toBe("ann-3");
+    expect(mockAudioInstances).toHaveLength(2); // ann1 + ann3 (ann2는 재생 안 됨)
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 describe("볼륨", () => {
   it("setVolume: 볼륨 값 변경", () => {
     const { result } = renderHook(() => useAudioPlayer());

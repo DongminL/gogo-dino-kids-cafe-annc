@@ -67,7 +67,7 @@ export const useUpdaterStore = create<UpdaterStore>((set) => ({
     api.onUpdateError((error) => {
       set((state) => {
         if (state.status === "downloading") {
-          return { errorMessage: error, status: "error" };
+          return { errorMessage: error, status: "error", downloadProgress: null };
         }
         return { status: "idle" };
       });

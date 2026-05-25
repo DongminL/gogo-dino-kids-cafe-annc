@@ -52,6 +52,7 @@ function stopWatchdog() {
 
 const initialSettings = loadBgMusicSettings();
 volumeRef.current = initialSettings.volume;
+playingTrackIndexRef.current = initialSettings.currentTrackIndex;
 
 const ctx = {
   audioRef, objectUrlRef, volumeRef, isFadedRef,
