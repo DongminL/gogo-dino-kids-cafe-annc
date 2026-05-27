@@ -130,6 +130,33 @@
     text-align: center;
   }
 
+  .version-info {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 16px;
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  .version-link {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #002D62;
+    font-weight: 600;
+    font-size: 0.8rem;
+    font-family: inherit;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   .btn-open-external {
     margin-top: 8px;
     padding: 10px 24px;

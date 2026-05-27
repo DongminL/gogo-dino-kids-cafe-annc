@@ -1,6 +1,9 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: "jsdom",
+  globals: {
+    __APP_VERSION__: "0.0.0-test",
+  },
   testPathIgnorePatterns: ["/node_modules/", "/e2e/"],
   transform: {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: "./tsconfig.test.json" }],

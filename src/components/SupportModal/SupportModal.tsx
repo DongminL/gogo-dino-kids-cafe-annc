@@ -2,7 +2,7 @@ import React from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { BookOpen, MessageSquare } from "lucide-react";
 import styles from "@/components/SupportModal/SupportModal.module.scss";
-import { GITHUB_WIKI_URL, GOOGLE_FORM_URL } from "@/support-links";
+import { GITHUB_WIKI_URL, GOOGLE_FORM_URL, GITHUB_RELEASE_TAG_URL } from "@/support-links";
 
 interface SupportModalProps {
   type: "guide" | "feedback";
@@ -26,6 +26,7 @@ const CONFIG = {
 
 export function SupportModal({ type, onClose }: SupportModalProps): React.ReactNode {
   const config = CONFIG[type];
+  const releaseUrl = `${GITHUB_RELEASE_TAG_URL}/v${__APP_VERSION__}`;
 
   const handleOpenExternal = () => {
     window.electronAPI?.openExternal(config.url);
@@ -51,6 +52,15 @@ export function SupportModal({ type, onClose }: SupportModalProps): React.ReactN
           <button className={styles.btnOpenExternal} onClick={handleOpenExternal}>
             브라우저에서 열기
           </button>
+          <div className={styles.versionInfo}>
+            <span>앱 버전</span>
+            <button
+              className={styles.versionLink}
+              onClick={() => window.electronAPI?.openExternal(releaseUrl)}
+            >
+              v{__APP_VERSION__}
+            </button>
+          </div>
         </div>
       </div>
     </div>

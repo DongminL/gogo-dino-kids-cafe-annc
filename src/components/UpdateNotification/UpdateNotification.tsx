@@ -3,8 +3,7 @@ import clsx from "clsx";
 import { Download, RefreshCw, X, AlertCircle } from "lucide-react";
 import styles from "@/components/UpdateNotification/UpdateNotification.module.scss";
 import { useUpdaterStore } from "@/stores/useUpdaterStore";
-
-const GITHUB_RELEASES_URL = "https://github.com/DongminL/gogo-dino-kids-cafe-annc/releases/tag";
+import { GITHUB_RELEASE_TAG_URL } from "@/support-links";
 
 export function UpdateNotification() {
   const { status, updateInfo, downloadProgress, errorMessage, downloadUpdate, installUpdate, dismiss } = useUpdaterStore();
@@ -19,7 +18,7 @@ export function UpdateNotification() {
         </div>
         <span>새 버전 <button
           className={styles.updateVersionLink}
-          onClick={() => window.electronAPI?.openExternal(`${GITHUB_RELEASES_URL}/v${updateInfo.version}`)}
+          onClick={() => window.electronAPI?.openExternal(`${GITHUB_RELEASE_TAG_URL}/v${updateInfo.version}`)}
         >{updateInfo.version}</button>이 출시되었습니다.</span>
         <button className={styles.updateActionBtn} onClick={downloadUpdate}>업데이트</button>
         <button className={styles.updateDismissBtn} onClick={dismiss}><X size={14} /></button>
