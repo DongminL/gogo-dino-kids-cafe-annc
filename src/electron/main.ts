@@ -15,7 +15,7 @@ function logFatal(prefix: string, err: unknown): void {
   } catch { /* ignore FS errors inside error handler */ }
 }
 
-// 키오스크 앱 특성상 예외 시 강제 종료 대신 로그를 남기고 계속 동작한다.
+// 데스크톱 앱 특성상 예외 시 강제 종료 대신 로그를 남기고 계속 동작한다.
 process.on("uncaughtException", (err) => logFatal("uncaughtException", err));
 process.on("unhandledRejection", (reason) => logFatal("unhandledRejection", reason));
 
