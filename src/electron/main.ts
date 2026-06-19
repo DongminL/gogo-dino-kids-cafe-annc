@@ -142,12 +142,14 @@ function setupAutoUpdater(): void {
   });
 
   ipcMain.on(IPC.OPEN_EXTERNAL, (_event, url: unknown) => {
-    if (
-      typeof url === "string" &&
-      (url.startsWith("https://github.com") || url.startsWith("https://forms.gle"))
-    ) {
-      shell.openExternal(url);
-    }
+    if (typeof url !== "string") return;
+    
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === "https:" && ["github.com", "forms.gle"].includes(parsed.hostname)) {
+        shell.openExternal(url);
+      }
+    } catch { /* ignore malformed URL */ }
   });
   ipcMain.on(IPC.CHECK_FOR_UPDATES, () => autoUpdater.checkForUpdates());
   ipcMain.on(IPC.DOWNLOAD_UPDATE, () => autoUpdater.downloadUpdate());
@@ -174,7 +176,7 @@ app.whenReady().then(() => {
   setupAutoUpdater();
 });
 
-app.on("window-all-closed", () => {});
+app.on("window-all-closed", () => { /* prevent default quit — tray keeps app alive */ });
 
 app.on("activate", () => {
   if (win) {
