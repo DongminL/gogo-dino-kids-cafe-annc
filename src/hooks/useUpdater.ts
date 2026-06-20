@@ -1,14 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from "react";
 import type { UpdateInfo, DownloadProgress } from "@/types/electron";
 
 export type UpdateStatus =
-  | 'idle'
-  | 'checking'
-  | 'available'
-  | 'not-available'
-  | 'downloading'
-  | 'downloaded'
-  | 'error';
+  | "idle"
+  | "checking"
+  | "available"
+  | "not-available"
+  | "downloading"
+  | "downloaded"
+  | "error";
 
 export interface UseUpdaterResult {
   status: UpdateStatus;
@@ -22,7 +22,7 @@ export interface UseUpdaterResult {
 }
 
 export function useUpdater(): UseUpdaterResult {
-  const [status, setStatus] = useState<UpdateStatus>('idle');
+  const [status, setStatus] = useState<UpdateStatus>("idle");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,31 +33,31 @@ export function useUpdater(): UseUpdaterResult {
 
     api.onUpdateAvailable((info) => {
       setUpdateInfo(info);
-      setStatus('available');
+      setStatus("available");
     });
 
     api.onUpdateNotAvailable(() => {
-      setStatus('not-available');
+      setStatus("not-available");
     });
 
     api.onDownloadProgress((progress) => {
       setDownloadProgress(progress);
-      setStatus('downloading');
+      setStatus("downloading");
     });
 
     api.onUpdateDownloaded((info) => {
       setUpdateInfo(info);
       setDownloadProgress(null);
-      setStatus('downloaded');
+      setStatus("downloaded");
     });
 
     api.onUpdateError((error) => {
       setStatus((prev) => {
-        if (prev === 'downloading') {
+        if (prev === "downloading") {
           setErrorMessage(error);
-          return 'error';
+          return "error";
         }
-        return 'idle';
+        return "idle";
       });
     });
 
@@ -68,14 +68,14 @@ export function useUpdater(): UseUpdaterResult {
 
   const checkForUpdates = useCallback(() => {
     if (!window.electronAPI) return;
-    setStatus('checking');
+    setStatus("checking");
     setErrorMessage(null);
     window.electronAPI.checkForUpdates();
   }, []);
 
   const downloadUpdate = useCallback(() => {
     if (!window.electronAPI) return;
-    setStatus('downloading');
+    setStatus("downloading");
     window.electronAPI.downloadUpdate();
   }, []);
 
@@ -84,7 +84,7 @@ export function useUpdater(): UseUpdaterResult {
   }, []);
 
   const dismiss = useCallback(() => {
-    setStatus('idle');
+    setStatus("idle");
     setErrorMessage(null);
   }, []);
 
