@@ -312,3 +312,64 @@ describe("볼륨", () => {
     expect(mockAudioInstances[0].volume).toBe(0.3);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("레이스 컨디션 회귀 (generation 가드)", () => {
+  const ann1 = { ...mockAnnouncement, id: "ann-1" };
+  const ann2 = { ...mockAnnouncement, id: "ann-2" };
+  const ann3 = { ...mockAnnouncement, id: "ann-3" };
+
+  it("stale onerror 이중 발화 시 큐를 건너뛰지 않음", async () => {
+    const { result } = renderHook(() => useAudioPlayer());
+
+    await act(async () => { result.current.play(ann1); });
+    expect(result.current.playingId).toBe("ann-1");
+
+    act(() => {
+      result.current.enqueue(ann2);
+      result.current.enqueue(ann3);
+    });
+
+    const firstAudio = mockAudioInstances[0];
+
+    // ann1 종료 → ann2 재생 시작
+    act(() => { firstAudio.triggerEnded(); });
+    expect(result.current.playingId).toBe("ann-2");
+    expect(mockAudioInstances).toHaveLength(2);
+
+    // stale onerror 발화 — generation 가드로 무시되어야 함 (수정 전엔 ann3이 잘못 재생됨)
+    act(() => { firstAudio.triggerError(); });
+    expect(result.current.playingId).toBe("ann-2");
+    expect(mockAudioInstances).toHaveLength(2);
+  });
+
+  it("새 play 후 옛 audio의 늦은 play() reject가 새 재생을 끊지 않음", async () => {
+    let rejectFirstPlay!: (reason: Error) => void;
+    const firstPlayPromise = new Promise<void>((_, rej) => { rejectFirstPlay = rej; });
+    let deferredUsed = false;
+
+    const originalAudio = global.Audio;
+    class DeferredPlayAudio extends MockAudio {
+      play = jest.fn(() => {
+        if (!deferredUsed) { deferredUsed = true; return firstPlayPromise; }
+        return Promise.resolve();
+      });
+    }
+    global.Audio = DeferredPlayAudio as unknown as typeof Audio;
+
+    const { result } = renderHook(() => useAudioPlayer());
+
+    act(() => { result.current.play(ann1); });
+    expect(result.current.playingId).toBe("ann-1");
+
+    // ann2로 교체 재생 — ann1의 play()는 아직 pending
+    await act(async () => { result.current.play(ann2); });
+    expect(result.current.playingId).toBe("ann-2");
+
+    // 옛 play() reject — generation 가드로 새 재생에 영향 없어야 함
+    await act(async () => { rejectFirstPlay(new Error("interrupted")); });
+    expect(result.current.playingId).toBe("ann-2");
+
+    global.Audio = originalAudio;
+  });
+});

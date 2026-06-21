@@ -417,7 +417,7 @@ describe("재생 제어", () => {
     mockGetTrackBlob.mockResolvedValueOnce(new Blob(["audio"]));
     const result = await setupWithOneTrack();
 
-    void mockAudioInstances; // drain: 이전 Audio 인스턴스 무시
+    mockAudioInstances = [];
     const rejectedPlay = jest.fn().mockRejectedValueOnce(new Error("autoplay blocked"));
 
     // 다음 Audio 인스턴스의 play가 실패하도록 설정
@@ -948,15 +948,13 @@ describe("addTrack - onProgress 콜백", () => {
     readAsArrayBuffer: jest.Mock;
   } | null;
 
-  function createMockFileReader() {
-    const instance = {
-      onprogress: null as ((e: Partial<ProgressEvent>) => void) | null,
-      onload: null as (() => void) | null,
-      onerror: null as (() => void) | null,
-      error: null as Error | null,
-      readAsArrayBuffer: jest.fn(() => { mockReaderInstance = instance; }),
-    };
-    return instance;
+  class MockFileReader {
+    onprogress: ((e: Partial<ProgressEvent>) => void) | null = null;
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    error: Error | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    readAsArrayBuffer = jest.fn(() => { mockReaderInstance = this; });
   }
 
   let originalFileReader: typeof FileReader;
@@ -964,7 +962,7 @@ describe("addTrack - onProgress 콜백", () => {
   beforeEach(() => {
     mockReaderInstance = null;
     originalFileReader = global.FileReader;
-    global.FileReader = function() { return createMockFileReader(); } as unknown as typeof FileReader;
+    global.FileReader = MockFileReader as unknown as typeof FileReader;
   });
 
   afterEach(() => {
@@ -1338,5 +1336,54 @@ describe("togglePlay — audioRef 없는 상태에서 재시작", () => {
       result.current.togglePlay();
     });
     await waitFor(() => expect(result.current.isPlaying).toBe(true));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe("레이스 컨디션 회귀 (generation 가드)", () => {
+  it("이전 트랙 play()의 늦은 reject가 새 재생 상태/objectURL을 파괴하지 않음", async () => {
+    const { result } = renderHook(() => useBgMusic());
+
+    act(() => { result.current.createPlaylist("테스트"); });
+    const playlistId = result.current.playlists[0].id;
+
+    for (const file of [new File(["a"], "a.mp3"), new File(["b"], "b.mp3")]) {
+      await act(async () => { await result.current.addTrack(file, playlistId); });
+    }
+
+    // 첫 번째 Audio.play()를 수동 reject 가능한 Deferred로 구성
+    let rejectFirstPlay!: (reason: Error) => void;
+    const firstPlayPromise = new Promise<void>((_, rej) => { rejectFirstPlay = rej; });
+    let audioCallCount = 0;
+    const originalAudio = global.Audio;
+    class ControlledAudio extends MockAudio {
+      play = jest.fn(() => {
+        return ++audioCallCount === 1 ? firstPlayPromise : Promise.resolve();
+      });
+    }
+    global.Audio = ControlledAudio as unknown as typeof Audio;
+
+    mockGetTrackBlob.mockResolvedValue(new Blob(["audio"], { type: "audio/mpeg" }));
+
+    // play(0) — 블롭 로드까지 완료, play()는 pending
+    await act(async () => { result.current.play(0); });
+    expect(result.current.isPlaying).toBe(false);
+
+    // next() → generation 증가, track 1 재생 시작
+    await act(async () => { result.current.next(); });
+    await waitFor(() => expect(result.current.isPlaying).toBe(true));
+    expect(result.current.currentTrackIndex).toBe(1);
+
+    const revokeCallsBefore = (URL.revokeObjectURL as jest.Mock).mock.calls.length;
+
+    // 첫 번째 play() reject → generation 가드로 무시, 새 재생 유지
+    await act(async () => { rejectFirstPlay(new Error("stale reject")); });
+
+    expect(result.current.isPlaying).toBe(true);
+    expect(result.current.currentTrackIndex).toBe(1);
+    // 새 objectURL이 revoke되지 않아야 함
+    expect((URL.revokeObjectURL as jest.Mock).mock.calls.length).toBe(revokeCallsBefore);
+
+    global.Audio = originalAudio;
   });
 });
