@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
 
+type BgmWindow = Window & {
+  __bgmVolumeLog: Array<{ v: number; isBgm: boolean }>;
+  __fadeOutStart?: number;
+  __fadeInStart?: number;
+};
+
 const TRACK_ID = "e2e-bgm-track";
 const TRACK_NAME = "테스트 배경음악";
 const BGM_VOLUME = 0.7;
@@ -30,7 +36,7 @@ test.describe("배경음악 페이드 인/아웃", () => {
     // 1) play()를 항상 resolve로 mock → autoplay 정책 우회
     //    volume setter를 후킹 → BGM 볼륨 변화 추적
     await page.addInitScript(() => {
-      (window as any).__bgmVolumeLog = [];
+      (window as BgmWindow).__bgmVolumeLog = [];
 
       HTMLMediaElement.prototype.play = function () {
         return Promise.resolve();
@@ -47,7 +53,7 @@ test.describe("배경음악 페이드 인/아웃", () => {
         set(val: number) {
           // blob: URL이면 BGM 오디오로 판단
           const isBgm = (this.src || "").startsWith("blob:");
-          (window as any).__bgmVolumeLog.push({ v: val, isBgm });
+          (window as BgmWindow).__bgmVolumeLog.push({ v: val, isBgm });
           desc.set!.call(this, val);
         },
         configurable: true,
@@ -134,7 +140,7 @@ test.describe("배경음악 페이드 인/아웃", () => {
     // BGM 오디오 엘리먼트에 목표 볼륨(0.7)이 설정될 때까지 대기
     await page.waitForFunction(
       () =>
-        (window as any).__bgmVolumeLog.some(
+        (window as BgmWindow).__bgmVolumeLog.some(
           (e: { v: number; isBgm: boolean }) => e.isBgm && e.v >= 0.69
         ),
       { timeout: 5000 }
@@ -142,7 +148,7 @@ test.describe("배경음악 페이드 인/아웃", () => {
 
     // 페이드 아웃 시작 지점 기록
     await page.evaluate(() => {
-      (window as any).__fadeOutStart = (window as any).__bgmVolumeLog.length;
+      (window as BgmWindow).__fadeOutStart = (window as BgmWindow).__bgmVolumeLog.length;
     });
 
     // 안내방송 재생 → bgMusic.fadeOut() 트리거
@@ -153,8 +159,8 @@ test.describe("배경음악 페이드 인/아웃", () => {
 
     // BGM 볼륨이 0에 가까워졌는지 확인
     const result = await page.evaluate(() => {
-      const log: { v: number; isBgm: boolean }[] = (window as any).__bgmVolumeLog;
-      const from: number = (window as any).__fadeOutStart ?? 0;
+      const log: { v: number; isBgm: boolean }[] = (window as BgmWindow).__bgmVolumeLog;
+      const from: number = (window as BgmWindow).__fadeOutStart ?? 0;
       const bgmSteps = log.slice(from).filter((e) => e.isBgm);
       return {
         stepCount: bgmSteps.length,
@@ -172,7 +178,7 @@ test.describe("배경음악 페이드 인/아웃", () => {
     await page.getByRole("button", { name: "재생", exact: true }).click();
     await page.waitForFunction(
       () =>
-        (window as any).__bgmVolumeLog.some(
+        (window as BgmWindow).__bgmVolumeLog.some(
           (e: { v: number; isBgm: boolean }) => e.isBgm && e.v >= 0.69
         ),
       { timeout: 5000 }
@@ -184,7 +190,7 @@ test.describe("배경음악 페이드 인/아웃", () => {
 
     // 페이드 인 시작 지점 기록
     await page.evaluate(() => {
-      (window as any).__fadeInStart = (window as any).__bgmVolumeLog.length;
+      (window as BgmWindow).__fadeInStart = (window as BgmWindow).__bgmVolumeLog.length;
     });
 
     // 안내방송 정지 → bgMusic.fadeIn() 트리거
@@ -195,8 +201,8 @@ test.describe("배경음악 페이드 인/아웃", () => {
 
     // BGM 볼륨이 목표값(0.7)으로 복원됐는지 확인
     const result = await page.evaluate(() => {
-      const log: { v: number; isBgm: boolean }[] = (window as any).__bgmVolumeLog;
-      const from: number = (window as any).__fadeInStart ?? 0;
+      const log: { v: number; isBgm: boolean }[] = (window as BgmWindow).__bgmVolumeLog;
+      const from: number = (window as BgmWindow).__fadeInStart ?? 0;
       const bgmSteps = log.slice(from).filter((e) => e.isBgm);
       return {
         stepCount: bgmSteps.length,

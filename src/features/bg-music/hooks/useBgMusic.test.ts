@@ -93,14 +93,6 @@ async function setupWithOneTrack() {
   return result;
 }
 
-/** play() 호출 후 isPlaying=true 가 될 때까지 대기 */
-async function playAndWait(result: ReturnType<typeof setupWithOneTrack> extends Promise<infer R> ? R : never) {
-  await act(async () => {
-    result.current.play();
-  });
-  await waitFor(() => expect(result.current.isPlaying).toBe(true));
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 describe("초기 상태", () => {
   it("기본값으로 초기화", () => {
@@ -425,7 +417,7 @@ describe("재생 제어", () => {
     mockGetTrackBlob.mockResolvedValueOnce(new Blob(["audio"]));
     const result = await setupWithOneTrack();
 
-    mockAudioInstances; // drain
+    void mockAudioInstances; // drain: 이전 Audio 인스턴스 무시
     const rejectedPlay = jest.fn().mockRejectedValueOnce(new Error("autoplay blocked"));
 
     // 다음 Audio 인스턴스의 play가 실패하도록 설정
@@ -956,12 +948,15 @@ describe("addTrack - onProgress 콜백", () => {
     readAsArrayBuffer: jest.Mock;
   } | null;
 
-  class MockFileReader {
-    onprogress: ((e: Partial<ProgressEvent>) => void) | null = null;
-    onload: (() => void) | null = null;
-    onerror: (() => void) | null = null;
-    error: Error | null = null;
-    readAsArrayBuffer = jest.fn(() => { mockReaderInstance = this; });
+  function createMockFileReader() {
+    const instance = {
+      onprogress: null as ((e: Partial<ProgressEvent>) => void) | null,
+      onload: null as (() => void) | null,
+      onerror: null as (() => void) | null,
+      error: null as Error | null,
+      readAsArrayBuffer: jest.fn(() => { mockReaderInstance = instance; }),
+    };
+    return instance;
   }
 
   let originalFileReader: typeof FileReader;
@@ -969,7 +964,7 @@ describe("addTrack - onProgress 콜백", () => {
   beforeEach(() => {
     mockReaderInstance = null;
     originalFileReader = global.FileReader;
-    global.FileReader = MockFileReader as unknown as typeof FileReader;
+    global.FileReader = function() { return createMockFileReader(); } as unknown as typeof FileReader;
   });
 
   afterEach(() => {

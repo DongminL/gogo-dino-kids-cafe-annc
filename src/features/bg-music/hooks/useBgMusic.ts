@@ -10,7 +10,7 @@ export function useBgMusic() {
     const freshSettings = loadSettings();
     useBgMusicStore.setState({ settings: freshSettings });
     useBgMusicStore.getState().init();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   const { settings, playingPlaylistId, playingTrackIndex } = store;
 

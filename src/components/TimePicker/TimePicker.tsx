@@ -15,7 +15,6 @@ export interface WheelOption {
 }
 
 const ITEM_HEIGHT = 44;
-const VISIBLE_ITEMS = 3; // Center + 1 above + 1 below shown in selection area, more visible via fade
 
 export function TimePicker({ mode, hour, minute, onChange }: TimePickerProps) {
   const modeOptions: WheelOption[] = useMemo(() => [

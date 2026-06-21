@@ -28,6 +28,6 @@ export function loadSettings(): BgMusicSettings {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return { ...defaultSettings(), ...JSON.parse(saved) };
-  } catch {}
+  } catch { /* localStorage 파싱 실패 시 기본값 반환 */ }
   return defaultSettings();
 }
