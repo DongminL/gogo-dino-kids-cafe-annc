@@ -289,11 +289,9 @@ describe("BgMusicPanel - 업로드 진행률", () => {
   });
 
   it("currentPlaylistId가 null(전체 목록)이면 모든 플레이리스트의 업로드가 표시됨", async () => {
-    let callCount = 0;
     const callbacks: Array<(p: number) => void> = [];
     const mockOnAddTrack = jest.fn().mockImplementation((_file: File, onProgress: (p: number) => void) => {
       callbacks.push(onProgress);
-      callCount++;
       return new Promise<void>(() => {});
     });
 

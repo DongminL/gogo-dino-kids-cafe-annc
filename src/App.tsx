@@ -37,7 +37,7 @@ function App() {
 
   // ─── Stores ────────────────────────────────────────────────────────────────
   const { schedules, timeRangeSettings, dayTypeOverride, setShowTimeRangeSettings } = useAnnouncementStore();
-  const { playingId, play, enqueue } = useAudioPlayerStore();
+  const { playingId, enqueue } = useAudioPlayerStore();
   const bgMusic = useBgMusicStore();
   const { activeTab, setActiveTab, showSupportModal, setShowSupportModal } = useUIStore();
   const { init: initUpdater } = useUpdaterStore();

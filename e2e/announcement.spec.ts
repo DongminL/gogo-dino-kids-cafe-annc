@@ -65,7 +65,6 @@ test.describe("방송 설정 모달", () => {
 
   test("설정 모달에 자동 재생 토글이 있다", async ({ page }) => {
     await page.getByRole("button", { name: "⚙" }).first().click();
-    const modal = page.locator("dialog, [role='dialog'], .modal, [class*='modal']").first();
     // 모달이 열리면 "재생 유형" 텍스트가 나타남 (모달 전용 텍스트)
     await expect(page.getByText("재생 유형")).toBeVisible();
     await expect(page.getByText("재생 시각")).toBeVisible();
