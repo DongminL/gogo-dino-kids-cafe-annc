@@ -48,6 +48,7 @@ export const useAudioPlayerStore = create<AudioPlayerStore>((set) => {
     set({ playingId: ann.id, progress: { current: 0, duration: 0 } });
 
     const handleEnd = () => {
+      if (playGenerationRef.current !== generation) return;
       audioRef.current = null;
       if (queueRef.current.length > 0) {
         const next = queueRef.current.shift()!;
