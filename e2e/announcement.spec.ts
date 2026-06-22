@@ -79,7 +79,7 @@ test.describe("방송 설정 모달", () => {
     await page.getByRole("button", { name: "⚙" }).first().click();
     await expect(page.getByText("댄스트램폴린 방송 설정")).toBeVisible();
 
-    await page.getByRole("button", { name: "닫기" }).click();
+    await page.getByRole("button", { name: "×" }).click();
     await expect(page.getByText("댄스트램폴린 방송 설정")).not.toBeVisible();
   });
 
