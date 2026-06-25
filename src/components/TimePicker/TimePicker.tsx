@@ -15,7 +15,6 @@ export interface WheelOption {
 }
 
 const ITEM_HEIGHT = 44;
-const VISIBLE_ITEMS = 3; // Center + 1 above + 1 below shown in selection area, more visible via fade
 
 export function TimePicker({ mode, hour, minute, onChange }: TimePickerProps) {
   const modeOptions: WheelOption[] = useMemo(() => [
@@ -96,6 +95,17 @@ export function Wheel({ options, value, onChange }: WheelProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const wheelAccum = useRef(0);
   const isTransitioning = useRef(false);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recenterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cooldownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (recenterTimeoutRef.current) clearTimeout(recenterTimeoutRef.current);
+      if (cooldownTimeoutRef.current) clearTimeout(cooldownTimeoutRef.current);
+    };
+  }, []);
 
   // To handle infinite scroll illusion, we repeat options
   const REPEAT_COUNT = 21; // Odd number for center alignment
@@ -153,7 +163,8 @@ export function Wheel({ options, value, onChange }: WheelProps) {
         });
 
         // Cooldown to prevent runaway scrolling
-        setTimeout(() => {
+        if (cooldownTimeoutRef.current) clearTimeout(cooldownTimeoutRef.current);
+        cooldownTimeoutRef.current = setTimeout(() => {
           isTransitioning.current = false;
         }, 100);
       }
@@ -197,22 +208,22 @@ export function Wheel({ options, value, onChange }: WheelProps) {
     }
 
     // Reset to center set to maintain infinite scroll feel
-    setTimeout(() => {
-        if (scrollRef.current) {
-            const currentIdx = Math.round(scrollRef.current.scrollTop / ITEM_HEIGHT) % options.length;
-            const centerScroll = (centerSetIndex * options.length + currentIdx) * ITEM_HEIGHT;
-            if (Math.abs(scrollRef.current.scrollTop - centerScroll) > ITEM_HEIGHT * (options.length / 2)) {
-               scrollRef.current.scrollTop = centerScroll;
-            }
+    if (recenterTimeoutRef.current) clearTimeout(recenterTimeoutRef.current);
+    recenterTimeoutRef.current = setTimeout(() => {
+      if (scrollRef.current) {
+        const currentIdx = Math.round(scrollRef.current.scrollTop / ITEM_HEIGHT) % options.length;
+        const centerScroll = (centerSetIndex * options.length + currentIdx) * ITEM_HEIGHT;
+        if (Math.abs(scrollRef.current.scrollTop - centerScroll) > ITEM_HEIGHT * (options.length / 2)) {
+          scrollRef.current.scrollTop = centerScroll;
         }
+      }
     }, 300);
   };
 
-  let scrollTimeout: NodeJS.Timeout;
   const onScroll = () => {
     handleScroll();
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(handleScrollEnd, 150);
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(handleScrollEnd, 150);
   };
 
   return (

@@ -18,4 +18,12 @@ module.exports = {
     "\\.module\\.(css|scss)$": "<rootDir>/src/__mocks__/cssModuleMock.ts",
   },
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}",
+    "!src/electron/**",
+    "!src/**/*.d.ts",
+    "!src/__mocks__/**",
+    "!src/index.tsx",
+    "!src/setupTests.ts",
+  ],
 };

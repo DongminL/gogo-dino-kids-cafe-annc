@@ -1,10 +1,23 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain, shell } from "electron";
 import path from "path";
+import fs from "fs";
 import Store from "electron-store";
 import { autoUpdater } from "electron-updater";
 import type { Rectangle } from "electron";
 import type { UpdateInfo, ProgressInfo } from "electron-updater";
 import { IPC } from "@/electron/ipcChannels";
+
+function logFatal(prefix: string, err: unknown): void {
+  const line = `[${new Date().toISOString()}] ${prefix}: ${err instanceof Error ? err.stack ?? err.message : String(err)}\n`;
+  console.error(line);
+  try {
+    fs.appendFileSync(path.join(app.getPath("userData"), "error.log"), line);
+  } catch { /* ignore FS errors inside error handler */ }
+}
+
+// 데스크톱 앱 특성상 예외 시 강제 종료 대신 로그를 남기고 계속 동작한다.
+process.on("uncaughtException", (err) => logFatal("uncaughtException", err));
+process.on("unhandledRejection", (reason) => logFatal("unhandledRejection", reason));
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -142,12 +155,14 @@ function setupAutoUpdater(): void {
   });
 
   ipcMain.on(IPC.OPEN_EXTERNAL, (_event, url: unknown) => {
-    if (
-      typeof url === "string" &&
-      (url.startsWith("https://github.com") || url.startsWith("https://forms.gle"))
-    ) {
-      shell.openExternal(url);
-    }
+    if (typeof url !== "string") return;
+    
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === "https:" && ["github.com", "forms.gle"].includes(parsed.hostname)) {
+        shell.openExternal(url);
+      }
+    } catch { /* ignore malformed URL */ }
   });
   ipcMain.on(IPC.CHECK_FOR_UPDATES, () => autoUpdater.checkForUpdates());
   ipcMain.on(IPC.DOWNLOAD_UPDATE, () => autoUpdater.downloadUpdate());
@@ -174,7 +189,7 @@ app.whenReady().then(() => {
   setupAutoUpdater();
 });
 
-app.on("window-all-closed", () => {});
+app.on("window-all-closed", () => { /* prevent default quit — tray keeps app alive */ });
 
 app.on("activate", () => {
   if (win) {

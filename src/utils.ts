@@ -61,7 +61,7 @@ export function loadTimeRangeSettings(): AnnouncementTimeRangeSettings {
         holiday: { ...DEFAULT_TIME_RANGE_SETTINGS.holiday, ...parsed.holiday },
       };
     }
-  } catch {}
+  } catch { /* ignore parse errors — return defaults */ }
   return { ...DEFAULT_TIME_RANGE_SETTINGS };
 }
 
@@ -79,6 +79,6 @@ export function loadSettings(): Record<string, Schedule> {
       });
       return { ...defaults, ...parsed };
     }
-  } catch {}
+  } catch { /* ignore parse errors — return defaults */ }
   return defaults;
 }

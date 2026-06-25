@@ -107,6 +107,7 @@ export function createPlaybackSlice(
     ctx.playingTrackIndexRef.current = index;
 
     audio.onended = () => {
+      if (generation !== ctx.playGenerationRef.current) return;
       const sCurrent = get().settings;
       const pl = targetPlaylistId === null
         ? null
@@ -127,6 +128,7 @@ export function createPlaybackSlice(
     };
 
     audio.onerror = () => {
+      if (generation !== ctx.playGenerationRef.current) return;
       ctx.stopWatchdog();
       set({ isPlaying: false });
       ctx.audioRef.current = null;
@@ -134,9 +136,11 @@ export function createPlaybackSlice(
     };
 
     audio.play().then(() => {
+      if (generation !== ctx.playGenerationRef.current) return;
       set({ isPlaying: true });
       ctx.startWatchdog();
     }).catch(() => {
+      if (generation !== ctx.playGenerationRef.current) return;
       ctx.stopWatchdog();
       set({ isPlaying: false });
       ctx.audioRef.current = null;
