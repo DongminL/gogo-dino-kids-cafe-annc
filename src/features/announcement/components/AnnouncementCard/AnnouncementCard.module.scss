@@ -47,8 +47,29 @@
     color: #2c3e50;
     flex: 1;
     line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
+  .custom-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #6a1b9a;
+    background: #f3e5f5;
+    border-radius: 6px;
+    padding: 3px 8px;
+    letter-spacing: -0.2px;
+  }
+
+  .card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .delete-toggle,
   .settings-toggle {
     background: #f8f9fa;
     border: none;
@@ -73,6 +94,11 @@
       color: #2e7d32;
       background: #e8f5e9;
     }
+  }
+
+  .delete-toggle:hover {
+    background: #fdecea;
+    color: #c62828;
   }
 }
 
@@ -129,6 +155,11 @@
 
   &:active {
     transform: scale(0.96);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
