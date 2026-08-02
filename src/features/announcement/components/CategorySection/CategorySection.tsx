@@ -32,7 +32,7 @@ export function CategorySection({
           <AnnouncementCard
             key={ann.id}
             ann={ann}
-            schedule={schedules[ann.id]}
+            schedule={schedules[ann.id] ?? ann.defaultSchedule}
             isPlaying={playingId === ann.id}
             isSettingsOpen={openSettingsId === ann.id}
             progress={progress}
