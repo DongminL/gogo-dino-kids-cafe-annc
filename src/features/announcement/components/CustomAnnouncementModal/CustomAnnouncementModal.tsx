@@ -35,7 +35,7 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
   }, []);
 
   const canSubmit = title.trim() && text.trim() && !submitting &&
-    (hasKey || (key.trim() && region.trim()));
+    (!showKeyForm || (key.trim() && region.trim()));
 
   const handleSubmit = async () => {
     setError("");
