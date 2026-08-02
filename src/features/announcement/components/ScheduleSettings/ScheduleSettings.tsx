@@ -7,11 +7,11 @@ import { useAnnouncementStore } from "@/features/announcement/stores/useAnnounce
 import { ANNOUNCEMENT_DEFS } from "@/features/announcement/announcements";
 
 export function ScheduleSettings(): React.ReactNode {
-  const { openSettingsId, schedules, updateSchedule, toggleSettings } = useAnnouncementStore();
+  const { openSettingsId, schedules, updateSchedule, toggleSettings, customDefs } = useAnnouncementStore();
 
   const schedule = openSettingsId ? schedules[openSettingsId] : null;
   const announcementTitle = openSettingsId
-    ? (ANNOUNCEMENT_DEFS.find((a) => a.id === openSettingsId)?.title ?? "")
+    ? ([...ANNOUNCEMENT_DEFS, ...customDefs].find((a) => a.id === openSettingsId)?.title ?? "")
     : "";
 
   const [draft, setDraft] = useState<Schedule | null>(schedule);
