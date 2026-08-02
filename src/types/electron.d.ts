@@ -10,6 +10,11 @@ export interface DownloadProgress {
   total: number;
 }
 
+export interface TtsConfig {
+  region: string;
+  hasKey: boolean;
+}
+
 export interface ElectronAPI {
   openExternal: (url: string) => void;
   checkForUpdates: () => void;
@@ -21,6 +26,10 @@ export interface ElectronAPI {
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => void;
   onUpdateError: (callback: (error: string) => void) => void;
   removeUpdateListeners: () => void;
+
+  synthesizeTts: (text: string) => Promise<Uint8Array>;
+  getTtsConfig: () => Promise<TtsConfig>;
+  setTtsConfig: (key: string, region: string) => Promise<void>;
 }
 
 declare global {

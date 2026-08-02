@@ -21,6 +21,10 @@ const api: ElectronAPI = {
   downloadUpdate: () => ipcRenderer.send(IPC.DOWNLOAD_UPDATE),
   installUpdate: () => ipcRenderer.send(IPC.INSTALL_UPDATE),
 
+  synthesizeTts: (text) => ipcRenderer.invoke(IPC.TTS_SYNTHESIZE, text),
+  getTtsConfig: () => ipcRenderer.invoke(IPC.TTS_GET_CONFIG),
+  setTtsConfig: (key, region) => ipcRenderer.invoke(IPC.TTS_SET_CONFIG, { key, region }),
+
   onUpdateAvailable: makeListener<UpdateInfo>(IPC.UPDATE_AVAILABLE),
   onUpdateNotAvailable: makeListener<UpdateInfo>(IPC.UPDATE_NOT_AVAILABLE),
   onUpdateDownloaded: makeListener<UpdateInfo>(IPC.UPDATE_DOWNLOADED),

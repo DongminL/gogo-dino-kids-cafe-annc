@@ -2,6 +2,7 @@ import type { AnnouncementDef } from "@/features/announcement/types/announcement
 import type { Category } from "@/features/announcement/types/category";
 
 export const STORAGE_KEY = "annc-schedules";
+export const CUSTOM_STORAGE_KEY = "annc-custom";
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   attraction: "어트랙션 운영",
