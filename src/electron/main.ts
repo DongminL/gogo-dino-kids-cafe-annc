@@ -192,6 +192,9 @@ function setupTts(): void {
       throw new Error("잘못된 설정 값입니다.");
     }
     const { key, region } = config as { key: string; region: string };
+    if (key.trim().length === 0) {
+      throw new Error("Azure 키를 입력해주세요.");
+    }
     if (!isValidRegion(region)) {
       throw new Error("잘못된 Azure 리전입니다.");
     }

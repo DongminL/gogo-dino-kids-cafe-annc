@@ -36,10 +36,11 @@ test.describe("커스텀 방송 만들기 모달", () => {
     await expect(page.getByText("커스텀 방송 만들기")).not.toBeVisible();
   });
 
-  test("Electron API가 없는 환경(브라우저)에서는 생성 버튼이 비활성 상태를 유지한다", async ({ page }) => {
+  test("Electron API가 없는 환경(브라우저)에서 생성 시도 시 에러 메시지가 표시된다", async ({ page }) => {
     await page.getByRole("button", { name: "+ 방송 만들기" }).click();
     await page.getByPlaceholder("예: 우천 시 안내").fill("우천 안내");
     await page.getByPlaceholder("안내 방송으로 읽어줄 멘트를 입력하세요.").fill("우천 시 안내 방송입니다.");
-    await expect(page.getByRole("button", { name: "생성" })).toBeDisabled();
+    await page.getByRole("button", { name: "생성" }).click();
+    await expect(page.getByText("Electron 환경에서만 사용할 수 있습니다.")).toBeVisible();
   });
 });
