@@ -49,7 +49,8 @@ export function AnnouncementCard({
           <button
             className={clsx(styles.settingsToggle, isSettingsOpen && styles.active)}
             onClick={onToggleSettings}
-            title="스케줄 설정"
+            disabled={isBroken}
+            title={isBroken ? "음성 생성 실패로 설정할 수 없습니다" : "스케줄 설정"}
           >
             &#9881;
           </button>
