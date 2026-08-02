@@ -5,8 +5,11 @@ import type { Category } from "@/features/announcement/types/category";
 import { STORAGE_KEY, TIME_RANGE_STORAGE_KEY, CUSTOM_STORAGE_KEY } from "@/features/announcement/announcements";
 import { loadSettings, loadTimeRangeSettings } from "@/utils";
 import { getTtsAudioUrl, deleteTtsCache } from "@/features/announcement/ttsCache";
+import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
 
 const DEFAULT_CUSTOM_SCHEDULE: Schedule = { type: "once", time: "00:00", intervalMinutes: 30, enabled: false };
+
+let initCustomPromise: Promise<void> | null = null;
 
 function loadCustomList(): CustomAnnouncement[] {
   try {
@@ -83,25 +86,36 @@ export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
 
   setShowTimeRangeSettings: (v) => set({ showTimeRangeSettings: v }),
 
-  initCustom: async () => {
-    const list = loadCustomList();
-    const defs = await Promise.all(
-      list.map(async (c) => {
-        try {
-          const audioFile = await getTtsAudioUrl(c.text);
-          return toDef(c, audioFile);
-        } catch {
-          // 음성 생성 실패 — 목록엔 남기되 재생은 비활성화
-          return toDef(c, "");
-        }
-      })
-    );
-    set({ customDefs: defs });
+  initCustom: () => {
+    // ponytail: 앱 시작 시 한 번만 실행되어야 함 — 중복 호출(StrictMode 등)이
+    // 같은 로딩을 두 번 돌며 object URL을 누수하지 않도록 in-flight promise를 공유
+    if (!initCustomPromise) {
+      initCustomPromise = (async () => {
+        const list = loadCustomList();
+        const defs = await Promise.all(
+          list.map(async (c) => {
+            try {
+              const audioFile = await getTtsAudioUrl(c.text);
+              return toDef(c, audioFile);
+            } catch {
+              // 음성 생성 실패 — 목록엔 남기되 재생은 비활성화
+              return toDef(c, "");
+            }
+          })
+        );
+        // 로딩 중 addCustom으로 추가된 항목이 있으면 유지 — 그대로 덮어쓰지 않음
+        set((state) => {
+          const currentIds = new Set(state.customDefs.map((d) => d.id));
+          return { customDefs: [...defs.filter((d) => !currentIds.has(d.id)), ...state.customDefs] };
+        });
+      })();
+    }
+    return initCustomPromise;
   },
 
   addCustom: async (title, category, text) => {
     const audioFile = await getTtsAudioUrl(text);
-    const id = `custom-${Date.now()}`;
+    const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const custom: CustomAnnouncement = { id, title, category, text };
     saveCustomList([...loadCustomList(), custom]);
     set((state) => ({ customDefs: [...state.customDefs, toDef(custom, audioFile)] }));
@@ -109,6 +123,8 @@ export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
   },
 
   removeCustom: async (id) => {
+    if (useAudioPlayerStore.getState().playingId === id) useAudioPlayerStore.getState().stop();
+
     const list = loadCustomList();
     const target = list.find((c) => c.id === id);
     saveCustomList(list.filter((c) => c.id !== id));
