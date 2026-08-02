@@ -1,83 +1,28 @@
 @use "../../../../styles/variables" as *;
 
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(2px);
-  display: flex;
-  justify-content: flex-end;
-  z-index: 1000;
-  animation: overlay-fade 0.3s ease;
-}
-
-@keyframes overlay-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  @include modal-overlay;
 }
 
 .modal-container {
-  background: #fff;
+  @include modal-container;
   width: 400px;
-  max-width: calc(100vw - 40px);
-  height: calc(100vh - 40px);
-  margin: 20px;
-  border-radius: 24px;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slide-in-right {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
 }
 
 .modal-header {
-  padding: 24px 20px 16px;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include modal-header;
 
   .modal-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #2e7d32;
-    margin: 0;
+    @include modal-title;
   }
 
   .btn-close-x {
-    background: #f5f5f5;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    color: #666;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-
-    &:hover {
-      background: #eeeeee;
-      color: #333;
-    }
+    @include modal-close-btn;
   }
 }
 
 .modal-footer {
-  padding: 16px 24px 32px;
-  background: #fff;
-  border-top: 1px solid #f0f0f0;
+  @include modal-footer;
 }
 
 .settings-panel {
@@ -155,44 +100,5 @@
 }
 
 .settings-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-
-  button {
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-cancel {
-    background: transparent;
-    border: 1px solid #bbb;
-    color: #666;
-
-    &:hover {
-      background: #f0f0f0;
-      color: #333;
-    }
-  }
-
-  .btn-confirm {
-    background: #2e7d32;
-    border: 1px solid #2e7d32;
-    color: white;
-
-    &:hover:not(:disabled) {
-      background: #1b5e20;
-      border-color: #1b5e20;
-      box-shadow: 0 2px 6px rgba(46, 125, 50, 0.2);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
+  @include modal-actions;
 }
