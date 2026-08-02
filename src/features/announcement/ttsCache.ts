@@ -1,8 +1,5 @@
 import { getTrackBlob, saveTrackBlob, deleteTrackBlob } from "@/db/trackStorage";
-
-// 커스텀 방송의 음성(voice)은 고정 — 바꾸고 싶어지면 그때 파라미터로 노출.
-// voice를 캐시 키에 포함해두면 나중에 voice가 늘어나도 캐시가 안전하게 분리된다.
-export const TTS_VOICE = "ko-KR-SunHiNeural";
+import { TTS_VOICE } from "@/electron/tts";
 
 function cacheKey(text: string): string {
   return `tts:${TTS_VOICE}:${text}`;
