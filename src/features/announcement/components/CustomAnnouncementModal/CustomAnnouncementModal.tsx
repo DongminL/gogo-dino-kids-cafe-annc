@@ -3,6 +3,7 @@ import styles from "@/features/announcement/components/CustomAnnouncementModal/C
 import { CATEGORY_LABELS } from "@/features/announcement/announcements";
 import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
 import type { Category } from "@/features/announcement/types/category";
+import { ConfirmDialog } from "@/components/ConfirmDialog/ConfirmDialog";
 
 const TEXT_MAX_LENGTH = 1000;
 
@@ -25,6 +26,13 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [confirmClose, setConfirmClose] = useState(false);
+
+  const isDirty = title.trim() !== "" || text.trim() !== "" || key.trim() !== "";
+  const requestClose = () => {
+    if (isDirty) setConfirmClose(true);
+    else onClose();
+  };
 
   useEffect(() => {
     window.electronAPI?.getTtsConfig().then((config) => {
@@ -54,11 +62,11 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={requestClose}>
       <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>커스텀 방송 만들기</h2>
-          <button className={styles.btnCloseX} onClick={onClose}>&times;</button>
+          <button className={styles.btnCloseX} onClick={requestClose}>&times;</button>
         </div>
 
         <div className={styles.settingsPanel}>
@@ -134,12 +142,21 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
 
         <div className={styles.modalFooter}>
           <div className={styles.settingsActions}>
-            <button className={styles.btnCancel} onClick={onClose}>취소</button>
+            <button className={styles.btnCancel} onClick={requestClose}>취소</button>
             <button className={styles.btnConfirm} onClick={handleSubmit} disabled={!canSubmit}>
               {submitting ? "생성 중..." : "생성"}
             </button>
           </div>
         </div>
+
+        {confirmClose && (
+          <ConfirmDialog
+            message="입력한 내용이 사라집니다. 창을 닫으시겠습니까?"
+            confirmLabel="닫기"
+            onConfirm={onClose}
+            onCancel={() => setConfirmClose(false)}
+          />
+        )}
       </div>
     </div>
   );
