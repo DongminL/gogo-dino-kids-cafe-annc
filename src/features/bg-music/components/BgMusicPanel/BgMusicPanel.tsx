@@ -4,6 +4,7 @@ import { GripVertical, Trash2, Edit2, Check, X, RotateCcw } from "lucide-react";
 import styles from "@/features/bg-music/components/BgMusicPanel/BgMusicPanel.module.scss";
 import type { Track, Playlist } from "@/features/bg-music/types/bgMusic";
 import { stripExtension } from "@/utils";
+import { ConfirmDialog } from "@/components/ConfirmDialog/ConfirmDialog";
 
 interface UploadingItem {
   uploadId: string;
@@ -634,48 +635,30 @@ export function BgMusicPanel({
 
       {/* Confirmation Modal */}
       {confirmDelete && (
-        <div className={styles.bgMusicConfirmModal} data-confirm-modal onClick={() => setConfirmDelete(null)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h3>알림</h3>
-            </div>
-            <div className={styles.modalDivider} />
-            <div className={styles.modalBody}>
-              {confirmDelete.type === "playlist" ? (
-                <>플레이리스트 <strong>"{confirmDelete.name}"</strong>를 삭제하시겠습니까?</>
-              ) : confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? (
-                <>곡 <strong>"{confirmDelete.name}"</strong>을(를) 플레이리스트에서 제거하시겠습니까?</>
-              ) : (
-                <>배경 음악 파일 <strong>"{confirmDelete.name}"</strong>을(를) 영구적으로 삭제하시겠습니까?</>
-              )}
-            </div>
-            <div className={styles.modalDivider} />
-            <div className={styles.modalFooter}>
-              <button
-                className={clsx(styles.bgMusicBtn, styles["bg-music-btn--danger-filled"])}
-                onClick={() => {
-                  if (confirmDelete.type === "playlist") {
-                    actualDeletePlaylist(confirmDelete.playlistId);
-                  } else if (confirmDelete.type === "edit-rfp") {
-                    actualRemoveFromEditList(confirmDelete.index);
-                  } else if (confirmDelete.type === "rfp") {
-                    actualRemoveFromPlaylist(confirmDelete.playlistId, confirmDelete.index);
-                  } else {
-                    actualDeleteTrack(confirmDelete.trackId);
-                  }
-                }}
-              >
-                {confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? "제거" : "삭제"}
-              </button>
-              <button
-                className={styles.bgMusicBtn}
-                onClick={() => setConfirmDelete(null)}
-              >
-                취소
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          message={
+            confirmDelete.type === "playlist" ? (
+              <>플레이리스트 <strong>"{confirmDelete.name}"</strong>를 삭제하시겠습니까?</>
+            ) : confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? (
+              <>곡 <strong>"{confirmDelete.name}"</strong>을(를) 플레이리스트에서 제거하시겠습니까?</>
+            ) : (
+              <>배경 음악 파일 <strong>"{confirmDelete.name}"</strong>을(를) 영구적으로 삭제하시겠습니까?</>
+            )
+          }
+          confirmLabel={confirmDelete.type === "rfp" || confirmDelete.type === "edit-rfp" ? "제거" : "삭제"}
+          onConfirm={() => {
+            if (confirmDelete.type === "playlist") {
+              actualDeletePlaylist(confirmDelete.playlistId);
+            } else if (confirmDelete.type === "edit-rfp") {
+              actualRemoveFromEditList(confirmDelete.index);
+            } else if (confirmDelete.type === "rfp") {
+              actualRemoveFromPlaylist(confirmDelete.playlistId, confirmDelete.index);
+            } else {
+              actualDeleteTrack(confirmDelete.trackId);
+            }
+          }}
+          onCancel={() => setConfirmDelete(null)}
+        />
       )}
     </section>
   );
