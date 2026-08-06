@@ -43,4 +43,27 @@ test.describe("커스텀 방송 만들기 모달", () => {
     await page.getByRole("button", { name: "생성" }).click();
     await expect(page.getByText("Electron 환경에서만 사용할 수 있습니다.")).toBeVisible();
   });
+
+  test("입력값이 있을 때 취소하면 확인창이 뜨고, 취소 시 모달이 유지된다", async ({ page }) => {
+    await page.getByRole("button", { name: "+ 방송 만들기" }).click();
+    await page.getByPlaceholder("예: 우천 시 안내").fill("우천 안내");
+    await page.getByRole("button", { name: "취소" }).click();
+
+    const confirmDialog = page.locator("[data-confirm-modal]");
+    await expect(confirmDialog.getByText("입력한 내용이 사라집니다. 창을 닫으시겠습니까?")).toBeVisible();
+
+    await confirmDialog.getByRole("button", { name: "취소" }).click();
+    await expect(page.getByText("커스텀 방송 만들기")).toBeVisible();
+    await expect(page.getByPlaceholder("예: 우천 시 안내")).toHaveValue("우천 안내");
+  });
+
+  test("입력값이 있어도 확인창에서 닫기를 누르면 모달이 닫힌다", async ({ page }) => {
+    await page.getByRole("button", { name: "+ 방송 만들기" }).click();
+    await page.getByPlaceholder("예: 우천 시 안내").fill("우천 안내");
+    await page.mouse.click(10, 10); // 모달 바깥 딤 영역 클릭
+
+    const confirmDialog = page.locator("[data-confirm-modal]");
+    await confirmDialog.getByRole("button", { name: "닫기" }).click();
+    await expect(page.getByText("커스텀 방송 만들기")).not.toBeVisible();
+  });
 });

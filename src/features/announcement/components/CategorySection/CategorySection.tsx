@@ -6,6 +6,7 @@ import { AnnouncementCard } from "@/features/announcement/components/Announcemen
 import { CustomAnnouncementModal } from "@/features/announcement/components/CustomAnnouncementModal/CustomAnnouncementModal";
 import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
 import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
+import { ConfirmDialog } from "@/components/ConfirmDialog/ConfirmDialog";
 
 interface CategorySectionProps {
   category: keyof typeof CATEGORY_LABELS;
@@ -19,6 +20,7 @@ export function CategorySection({
   const { playingId, progress, play, stop, seek } = useAudioPlayerStore();
   const { schedules, openSettingsId, toggleSettings, customDefs, removeCustom } = useAnnouncementStore();
   const [showModal, setShowModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AnnouncementDef | null>(null);
 
   const allAnnouncements = [
     ...announcements,
@@ -40,7 +42,7 @@ export function CategorySection({
             onStop={stop}
             onSeek={seek}
             onToggleSettings={() => toggleSettings(ann.id)}
-            onDelete={ann.isCustom ? () => removeCustom(ann.id) : undefined}
+            onDelete={ann.isCustom ? () => setDeleteTarget(ann) : undefined}
           />
         ))}
       </div>
@@ -49,6 +51,14 @@ export function CategorySection({
       </button>
       {showModal && (
         <CustomAnnouncementModal initialCategory={category} onClose={() => setShowModal(false)} />
+      )}
+      {deleteTarget && (
+        <ConfirmDialog
+          message={<>커스텀 방송 <strong>"{deleteTarget.title}"</strong>을(를) 영구적으로 삭제하시겠습니까?</>}
+          confirmLabel="삭제"
+          onConfirm={() => { removeCustom(deleteTarget.id); setDeleteTarget(null); }}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </section>
   );
