@@ -15,6 +15,7 @@ interface AnnouncementCardProps {
   onStop: () => void;
   onSeek: (time: number) => void;
   onToggleSettings: () => void;
+  onEdit?: () => void;
   onDelete?: () => void;
 }
 
@@ -28,6 +29,7 @@ export function AnnouncementCard({
   onStop,
   onSeek,
   onToggleSettings,
+  onEdit,
   onDelete,
 }: AnnouncementCardProps): React.ReactNode {
   const isScheduleActive = schedule.enabled;
@@ -35,12 +37,17 @@ export function AnnouncementCard({
 
   return (
     <div className={clsx(styles.announcementCard, isPlaying && styles.playing)}>
+      {ann.isCustom && <span className={styles.customRibbon}>커스텀</span>}
       <div className={styles.cardHeader}>
         <div className={styles.announcementTitle}>
-          {ann.title}
-          {ann.isCustom && <span className={styles.customBadge}>커스텀</span>}
+          <span className={styles.titleText} title={ann.title}>{ann.title}</span>
         </div>
         <div className={styles.cardHeaderActions}>
+          {onEdit && (
+            <button className={styles.editToggle} onClick={onEdit} title="수정">
+              &#9998;
+            </button>
+          )}
           {onDelete && (
             <button className={styles.deleteToggle} onClick={onDelete} title="삭제">
               &#128465;
