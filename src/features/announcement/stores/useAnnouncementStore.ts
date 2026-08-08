@@ -31,6 +31,7 @@ function toDef(c: CustomAnnouncement, audioFile: string): AnnouncementDef {
     audioFile,
     defaultSchedule: DEFAULT_CUSTOM_SCHEDULE,
     isCustom: true,
+    text: c.text,
   };
 }
 
@@ -49,6 +50,7 @@ interface AnnouncementStore {
   setShowTimeRangeSettings: (v: boolean) => void;
   initCustom: () => Promise<void>;
   addCustom: (title: string, category: Category, text: string) => Promise<void>;
+  updateCustom: (id: string, title: string, category: Category, text: string) => Promise<void>;
   removeCustom: (id: string) => Promise<void>;
 }
 
@@ -120,6 +122,36 @@ export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
     saveCustomList([...loadCustomList(), custom]);
     set((state) => ({ customDefs: [...state.customDefs, toDef(custom, audioFile)] }));
     get().updateSchedule(id, DEFAULT_CUSTOM_SCHEDULE);
+  },
+
+  updateCustom: async (id, title, category, text) => {
+    const list = loadCustomList();
+    const oldEntry = list.find((c) => c.id === id);
+    if (!oldEntry) return;
+
+    const updated: CustomAnnouncement = { id, title, category, text };
+    saveCustomList(list.map((c) => (c.id === id ? updated : c)));
+
+    const textChanged = oldEntry.text !== text;
+    if (!textChanged) {
+      set((state) => ({
+        customDefs: state.customDefs.map((d) => (d.id === id ? { ...d, title, category } : d)),
+      }));
+      return;
+    }
+
+    if (useAudioPlayerStore.getState().playingId === id) useAudioPlayerStore.getState().stop();
+
+    const audioFile = await getTtsAudioUrl(text);
+    set((state) => {
+      const prev = state.customDefs.find((d) => d.id === id);
+      if (prev?.audioFile) URL.revokeObjectURL(prev.audioFile);
+      return { customDefs: state.customDefs.map((d) => (d.id === id ? toDef(updated, audioFile) : d)) };
+    });
+
+    // 같은 텍스트를 쓰는 다른 커스텀 방송이 없을 때만 이전 텍스트의 캐시 삭제
+    const stillUsed = list.some((c) => c.id !== id && c.text === oldEntry.text);
+    if (!stillUsed) await deleteTtsCache(oldEntry.text);
   },
 
   removeCustom: async (id) => {
