@@ -20,6 +20,7 @@ export function CategorySection({
   const { playingId, progress, play, stop, seek } = useAudioPlayerStore();
   const { schedules, openSettingsId, toggleSettings, customDefs, removeCustom } = useAnnouncementStore();
   const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState<AnnouncementDef | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AnnouncementDef | null>(null);
 
   const allAnnouncements = [
@@ -42,6 +43,7 @@ export function CategorySection({
             onStop={stop}
             onSeek={seek}
             onToggleSettings={() => toggleSettings(ann.id)}
+            onEdit={ann.isCustom ? () => setEditTarget(ann) : undefined}
             onDelete={ann.isCustom ? () => setDeleteTarget(ann) : undefined}
           />
         ))}
@@ -51,6 +53,18 @@ export function CategorySection({
       </button>
       {showModal && (
         <CustomAnnouncementModal initialCategory={category} onClose={() => setShowModal(false)} />
+      )}
+      {editTarget && (
+        <CustomAnnouncementModal
+          initialCategory={editTarget.category}
+          editTarget={{
+            id: editTarget.id,
+            title: editTarget.title,
+            category: editTarget.category,
+            text: editTarget.text ?? "",
+          }}
+          onClose={() => setEditTarget(null)}
+        />
       )}
       {deleteTarget && (
         <ConfirmDialog
