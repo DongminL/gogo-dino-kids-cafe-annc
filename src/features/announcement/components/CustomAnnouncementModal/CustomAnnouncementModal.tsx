@@ -3,6 +3,7 @@ import styles from "@/features/announcement/components/CustomAnnouncementModal/C
 import { CATEGORY_LABELS } from "@/features/announcement/announcements";
 import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
 import type { Category } from "@/features/announcement/types/category";
+import type { CustomAnnouncement } from "@/features/announcement/types/announcement";
 import { ConfirmDialog } from "@/components/ConfirmDialog/ConfirmDialog";
 
 const TEXT_MAX_LENGTH = 1000;
@@ -10,14 +11,16 @@ const TEXT_MAX_LENGTH = 1000;
 interface CustomAnnouncementModalProps {
   initialCategory: Category;
   onClose: () => void;
+  editTarget?: CustomAnnouncement;
 }
 
-export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnnouncementModalProps): React.ReactNode {
+export function CustomAnnouncementModal({ initialCategory, onClose, editTarget }: CustomAnnouncementModalProps): React.ReactNode {
   const addCustom = useAnnouncementStore((s) => s.addCustom);
+  const updateCustom = useAnnouncementStore((s) => s.updateCustom);
 
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<Category>(initialCategory);
-  const [text, setText] = useState("");
+  const [title, setTitle] = useState(editTarget?.title ?? "");
+  const [category, setCategory] = useState<Category>(editTarget?.category ?? initialCategory);
+  const [text, setText] = useState(editTarget?.text ?? "");
 
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [showKeyForm, setShowKeyForm] = useState(false);
@@ -28,7 +31,11 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
   const [error, setError] = useState("");
   const [confirmClose, setConfirmClose] = useState(false);
 
-  const isDirty = title.trim() !== "" || text.trim() !== "" || key.trim() !== "";
+  const isDirty =
+    title.trim() !== (editTarget?.title ?? "") ||
+    text.trim() !== (editTarget?.text ?? "") ||
+    category !== (editTarget?.category ?? initialCategory) ||
+    key.trim() !== "";
   const requestClose = () => {
     if (isDirty) setConfirmClose(true);
     else onClose();
@@ -52,10 +59,14 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
       if (showKeyForm) {
         await window.electronAPI?.setTtsConfig(key.trim(), region.trim());
       }
-      await addCustom(title.trim(), category, text.trim());
+      if (editTarget) {
+        await updateCustom(editTarget.id, title.trim(), category, text.trim());
+      } else {
+        await addCustom(title.trim(), category, text.trim());
+      }
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "방송 생성에 실패했습니다.");
+      setError(e instanceof Error ? e.message : (editTarget ? "방송 수정에 실패했습니다." : "방송 생성에 실패했습니다."));
     } finally {
       setSubmitting(false);
     }
@@ -65,7 +76,7 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
     <div className={styles.modalOverlay} onClick={requestClose}>
       <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>커스텀 방송 만들기</h2>
+          <h2 className={styles.modalTitle}>{editTarget ? "커스텀 방송 수정" : "커스텀 방송 만들기"}</h2>
           <button className={styles.btnCloseX} onClick={requestClose}>&times;</button>
         </div>
 
@@ -144,7 +155,7 @@ export function CustomAnnouncementModal({ initialCategory, onClose }: CustomAnno
           <div className={styles.settingsActions}>
             <button className={styles.btnCancel} onClick={requestClose}>취소</button>
             <button className={styles.btnConfirm} onClick={handleSubmit} disabled={!canSubmit}>
-              {submitting ? "생성 중..." : "생성"}
+              {editTarget ? (submitting ? "저장 중..." : "저장") : (submitting ? "생성 중..." : "생성")}
             </button>
           </div>
         </div>
