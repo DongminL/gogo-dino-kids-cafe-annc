@@ -8,6 +8,7 @@ export interface AnnouncementDef {
   audioFile: string;
   defaultSchedule: Schedule;
   isCustom?: boolean;
+  text?: string;
 }
 
 // 커스텀 방송인데 TTS 음성 생성에 실패해 재생할 오디오가 없는 상태
