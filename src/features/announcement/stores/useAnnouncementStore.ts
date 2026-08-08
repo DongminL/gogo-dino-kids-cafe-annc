@@ -130,10 +130,10 @@ export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
     if (!oldEntry) return;
 
     const updated: CustomAnnouncement = { id, title, category, text };
-    saveCustomList(list.map((c) => (c.id === id ? updated : c)));
-
     const textChanged = oldEntry.text !== text;
+
     if (!textChanged) {
+      saveCustomList(list.map((c) => (c.id === id ? updated : c)));
       set((state) => ({
         customDefs: state.customDefs.map((d) => (d.id === id ? { ...d, title, category } : d)),
       }));
@@ -142,7 +142,9 @@ export const useAnnouncementStore = create<AnnouncementStore>((set, get) => ({
 
     if (useAudioPlayerStore.getState().playingId === id) useAudioPlayerStore.getState().stop();
 
+    // TTS 생성 성공을 확인한 뒤에 저장 — 실패 시 localStorage와 화면 상태가 어긋나지 않도록
     const audioFile = await getTtsAudioUrl(text);
+    saveCustomList(list.map((c) => (c.id === id ? updated : c)));
     set((state) => {
       const prev = state.customDefs.find((d) => d.id === id);
       if (prev?.audioFile) URL.revokeObjectURL(prev.audioFile);
