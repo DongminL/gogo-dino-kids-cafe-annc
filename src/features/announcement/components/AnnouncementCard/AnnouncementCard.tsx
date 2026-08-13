@@ -1,7 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import styles from "@/features/announcement/components/AnnouncementCard/AnnouncementCard.module.scss";
-import type { AnnouncementDef } from "@/features/announcement/types/announcement";
+import { isBrokenCustom, type AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Schedule } from "@/features/announcement/types/schedule";
 import { getScheduleLabel } from "@/utils";
 import { AudioControls } from "@/components/AudioControls/AudioControls";
@@ -15,6 +15,8 @@ interface AnnouncementCardProps {
   onStop: () => void;
   onSeek: (time: number) => void;
   onToggleSettings: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export function AnnouncementCard({
@@ -27,25 +29,44 @@ export function AnnouncementCard({
   onStop,
   onSeek,
   onToggleSettings,
+  onEdit,
+  onDelete,
 }: AnnouncementCardProps): React.ReactNode {
   const isScheduleActive = schedule.enabled;
+  const isBroken = isBrokenCustom(ann);
 
   return (
     <div className={clsx(styles.announcementCard, isPlaying && styles.playing)}>
+      {ann.isCustom && <span className={styles.customRibbon}>커스텀</span>}
       <div className={styles.cardHeader}>
-        <div className={styles.announcementTitle}>{ann.title}</div>
-        <button
-          className={clsx(styles.settingsToggle, isSettingsOpen && styles.active)}
-          onClick={onToggleSettings}
-          title="스케줄 설정"
-        >
-          &#9881;
-        </button>
+        <div className={styles.announcementTitle}>
+          <span className={styles.titleText} title={ann.title}>{ann.title}</span>
+        </div>
+        <div className={styles.cardHeaderActions}>
+          {onEdit && (
+            <button className={styles.editToggle} onClick={onEdit} title="수정">
+              &#9998;
+            </button>
+          )}
+          {onDelete && (
+            <button className={styles.deleteToggle} onClick={onDelete} title="삭제">
+              &#128465;
+            </button>
+          )}
+          <button
+            className={clsx(styles.settingsToggle, isSettingsOpen && styles.active)}
+            onClick={onToggleSettings}
+            disabled={isBroken}
+            title={isBroken ? "음성 생성 실패로 설정할 수 없습니다" : "스케줄 설정"}
+          >
+            &#9881;
+          </button>
+        </div>
       </div>
 
       <div className={styles.scheduleInfo}>
         <span className={clsx(styles.scheduleBadge, isScheduleActive && styles.active)}>
-          {getScheduleLabel(schedule)}
+          {isBroken ? "음성 생성 실패" : getScheduleLabel(schedule)}
         </span>
       </div>
 
@@ -63,7 +84,7 @@ export function AnnouncementCard({
             &#9632; 정지
           </button>
         ) : (
-          <button className={styles.playButton} onClick={onPlay}>
+          <button className={styles.playButton} onClick={onPlay} disabled={isBroken}>
             &#9654; 재생
           </button>
         )}

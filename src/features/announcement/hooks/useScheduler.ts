@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import type { Schedule, AnnouncementTimeRangeSettings, DayType } from "@/features/announcement/types/schedule";
-import { ANNOUNCEMENT_DEFS } from "@/features/announcement/announcements";
 import { isKoreanHoliday } from "@/features/announcement/holidays";
 
 export function shouldFire(schedule: Schedule, hh: number, mm: number): boolean {
@@ -53,12 +52,18 @@ export function useScheduler(
   schedules: Record<string, Schedule>,
   timeRangeSettings: AnnouncementTimeRangeSettings,
   effectiveDayType: DayType,
-  onFire: (ann: AnnouncementDef, priority: number) => void
+  onFire: (ann: AnnouncementDef, priority: number) => void,
+  defs: AnnouncementDef[]
 ): void {
   const schedulesRef = useRef(schedules);
   useEffect(() => {
     schedulesRef.current = schedules;
   }, [schedules]);
+
+  const defsRef = useRef(defs);
+  useEffect(() => {
+    defsRef.current = defs;
+  }, [defs]);
 
   const timeRangeSettingsRef = useRef(timeRangeSettings);
   useEffect(() => {
@@ -96,7 +101,7 @@ export function useScheduler(
       lastDayRef.current = dayStr;
     }
 
-    ANNOUNCEMENT_DEFS.forEach((ann) => {
+    defsRef.current.forEach((ann) => {
       const schedule = schedulesRef.current[ann.id];
       if (!schedule) return;
 

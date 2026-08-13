@@ -6,6 +6,7 @@ import { autoUpdater } from "electron-updater";
 import type { Rectangle } from "electron";
 import type { UpdateInfo, ProgressInfo } from "electron-updater";
 import { IPC } from "@/electron/ipcChannels";
+import { synthesize, isValidRegion } from "@/electron/tts";
 
 function logFatal(prefix: string, err: unknown): void {
   const line = `[${new Date().toISOString()}] ${prefix}: ${err instanceof Error ? err.stack ?? err.message : String(err)}\n`;
@@ -176,6 +177,45 @@ function setupAutoUpdater(): void {
   }
 }
 
+function setupTts(): void {
+  ipcMain.handle(IPC.TTS_GET_CONFIG, () => ({
+    region: (store.get("azureTtsRegion") as string | undefined) ?? "",
+    hasKey: !!store.get("azureTtsKey"),
+  }));
+
+  ipcMain.handle(IPC.TTS_SET_CONFIG, (_event, config: unknown) => {
+    if (
+      typeof config !== "object" || config === null ||
+      typeof (config as { key?: unknown }).key !== "string" ||
+      typeof (config as { region?: unknown }).region !== "string"
+    ) {
+      throw new Error("잘못된 설정 값입니다.");
+    }
+    const { key, region } = config as { key: string; region: string };
+    if (key.trim().length === 0) {
+      throw new Error("Azure 키를 입력해주세요.");
+    }
+    if (!isValidRegion(region)) {
+      throw new Error("잘못된 Azure 리전입니다.");
+    }
+    store.set("azureTtsRegion", region);
+    store.set("azureTtsKey", key);
+  });
+
+  ipcMain.handle(IPC.TTS_SYNTHESIZE, async (_event, text: unknown) => {
+    if (typeof text !== "string" || text.length < 1 || text.length > 1000) {
+      throw new Error("멘트는 1~1000자로 입력해주세요.");
+    }
+    const key = store.get("azureTtsKey") as string | undefined;
+    const region = store.get("azureTtsRegion") as string | undefined;
+    if (!key || !region) {
+      throw new Error("Azure TTS 키와 리전을 먼저 설정해주세요.");
+    }
+    const buffer = await synthesize({ key, region, text });
+    return buffer;
+  });
+}
+
 app.on("second-instance", () => {
   if (win) {
     if (!win.isVisible()) win.show();
@@ -187,6 +227,7 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
   setupAutoUpdater();
+  setupTts();
 });
 
 app.on("window-all-closed", () => { /* prevent default quit — tray keeps app alive */ });

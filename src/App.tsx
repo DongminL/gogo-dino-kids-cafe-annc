@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import clsx from "clsx";
 import styles from "@/App.module.scss";
-import { ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS } from "@/features/announcement/announcements";
+import { ANNOUNCEMENT_DEFS, ANNOUNCEMENTS_BY_CATEGORY, CATEGORY_LABELS } from "@/features/announcement/announcements";
+import { isBrokenCustom } from "@/features/announcement/types/announcement";
 import { formatTime } from "@/utils";
 import { useKoreanClock } from "@/hooks/useKoreanClock";
 import { useScheduler, getDayType } from "@/features/announcement/hooks/useScheduler";
@@ -36,7 +37,7 @@ function App() {
   const currentTime = useKoreanClock();
 
   // ─── Stores ────────────────────────────────────────────────────────────────
-  const { schedules, timeRangeSettings, dayTypeOverride, setShowTimeRangeSettings } = useAnnouncementStore();
+  const { schedules, timeRangeSettings, dayTypeOverride, customDefs, initCustom, setShowTimeRangeSettings } = useAnnouncementStore();
   const { playingId, enqueue } = useAudioPlayerStore();
   const bgMusic = useBgMusicStore();
   const { activeTab, setActiveTab, showSupportModal, setShowSupportModal } = useUIStore();
@@ -46,6 +47,7 @@ function App() {
   useEffect(() => {
     bgMusic.init();
     initUpdater();
+    initCustom();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Fade background music when announcement plays/stops ──────────────────
@@ -60,7 +62,11 @@ function App() {
   // ─── Scheduler ────────────────────────────────────────────────────────────
   const detectedDayType = getDayType(currentTime);
   const effectiveDayType = dayTypeOverride ?? detectedDayType;
-  useScheduler(currentTime, schedules, timeRangeSettings, effectiveDayType, enqueue);
+  const schedulerDefs = useMemo(
+    () => [...ANNOUNCEMENT_DEFS, ...customDefs.filter((d) => !isBrokenCustom(d))],
+    [customDefs]
+  );
+  useScheduler(currentTime, schedules, timeRangeSettings, effectiveDayType, enqueue, schedulerDefs);
 
   // ─── Content routing ──────────────────────────────────────────────────────
   const categories = Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[];

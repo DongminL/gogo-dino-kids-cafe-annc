@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "@/features/announcement/components/CategorySection/CategorySection.module.scss";
 import type { AnnouncementDef } from "@/features/announcement/types/announcement";
 import { CATEGORY_LABELS } from "@/features/announcement/announcements";
 import { AnnouncementCard } from "@/features/announcement/components/AnnouncementCard/AnnouncementCard";
+import { CustomAnnouncementModal } from "@/features/announcement/components/CustomAnnouncementModal/CustomAnnouncementModal";
 import { useAudioPlayerStore } from "@/features/announcement/stores/useAudioPlayerStore";
 import { useAnnouncementStore } from "@/features/announcement/stores/useAnnouncementStore";
+import { ConfirmDialog } from "@/components/ConfirmDialog/ConfirmDialog";
 
 interface CategorySectionProps {
   category: keyof typeof CATEGORY_LABELS;
@@ -12,20 +14,28 @@ interface CategorySectionProps {
 }
 
 export function CategorySection({
-  category: _category,
+  category,
   announcements,
 }: CategorySectionProps): React.ReactNode {
   const { playingId, progress, play, stop, seek } = useAudioPlayerStore();
-  const { schedules, openSettingsId, toggleSettings } = useAnnouncementStore();
+  const { schedules, openSettingsId, toggleSettings, customDefs, removeCustom } = useAnnouncementStore();
+  const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState<AnnouncementDef | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AnnouncementDef | null>(null);
+
+  const allAnnouncements = [
+    ...announcements,
+    ...customDefs.filter((d) => d.category === category),
+  ];
 
   return (
     <section className={styles.categorySection}>
       <div className={styles.announcements}>
-        {announcements.map((ann) => (
+        {allAnnouncements.map((ann) => (
           <AnnouncementCard
             key={ann.id}
             ann={ann}
-            schedule={schedules[ann.id]}
+            schedule={schedules[ann.id] ?? ann.defaultSchedule}
             isPlaying={playingId === ann.id}
             isSettingsOpen={openSettingsId === ann.id}
             progress={progress}
@@ -33,9 +43,37 @@ export function CategorySection({
             onStop={stop}
             onSeek={seek}
             onToggleSettings={() => toggleSettings(ann.id)}
+            onEdit={ann.isCustom ? () => setEditTarget(ann) : undefined}
+            onDelete={ann.isCustom ? () => setDeleteTarget(ann) : undefined}
           />
         ))}
       </div>
+      <button className={styles.btnAddCustom} onClick={() => setShowModal(true)}>
+        + 방송 만들기
+      </button>
+      {showModal && (
+        <CustomAnnouncementModal initialCategory={category} onClose={() => setShowModal(false)} />
+      )}
+      {editTarget && (
+        <CustomAnnouncementModal
+          initialCategory={editTarget.category}
+          editTarget={{
+            id: editTarget.id,
+            title: editTarget.title,
+            category: editTarget.category,
+            text: editTarget.text ?? "",
+          }}
+          onClose={() => setEditTarget(null)}
+        />
+      )}
+      {deleteTarget && (
+        <ConfirmDialog
+          message={<>커스텀 방송 <strong>"{deleteTarget.title}"</strong>을(를) 영구적으로 삭제하시겠습니까?</>}
+          confirmLabel="삭제"
+          onConfirm={() => { removeCustom(deleteTarget.id); setDeleteTarget(null); }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </section>
   );
 }

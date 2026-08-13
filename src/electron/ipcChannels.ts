@@ -8,4 +8,7 @@ export const IPC = {
   CHECK_FOR_UPDATES: "check-for-updates",
   DOWNLOAD_UPDATE: "download-update",
   INSTALL_UPDATE: "install-update",
+  TTS_SYNTHESIZE: "tts-synthesize",
+  TTS_GET_CONFIG: "tts-get-config",
+  TTS_SET_CONFIG: "tts-set-config",
 } as const;

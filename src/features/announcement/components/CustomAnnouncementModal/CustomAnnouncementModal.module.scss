@@ -1,0 +1,104 @@
+@use "../../../../styles/variables" as *;
+
+.modal-overlay {
+  @include modal-overlay;
+}
+
+.modal-container {
+  @include modal-container;
+  width: 400px;
+}
+
+.modal-header {
+  @include modal-header;
+
+  .modal-title {
+    @include modal-title;
+  }
+
+  .btn-close-x {
+    @include modal-close-btn;
+  }
+}
+
+.modal-footer {
+  @include modal-footer;
+}
+
+.settings-panel {
+  flex: 1;
+  background: #fff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #555;
+  display: flex;
+  justify-content: space-between;
+}
+
+.char-count {
+  font-weight: 400;
+  color: #999;
+}
+
+.settings-input,
+.settings-select,
+.settings-textarea {
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #333;
+  font-family: inherit;
+  width: 100%;
+
+  &:focus {
+    outline: none;
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+  }
+}
+
+.settings-textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.btn-link-small {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2e7d32;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.error-text {
+  font-size: 0.82rem;
+  color: #c62828;
+  margin: 0;
+}
+
+.settings-actions {
+  @include modal-actions;
+}
