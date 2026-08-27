@@ -18,4 +18,6 @@ export interface AnnouncementTimeRangeSettings {
   enabled: boolean;
   weekday: TimeRange;
   holiday: TimeRange;
+  bgMusicStopEnabled: boolean;
+  bgMusicStopTime: string; // "HH:mm"
 }
