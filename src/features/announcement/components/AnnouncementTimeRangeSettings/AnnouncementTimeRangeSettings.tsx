@@ -46,6 +46,15 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
   const isAuto = dayTypeOverride === null;
   const timeRangeEnabled = draft.enabled;
   const [activePicker, setActivePicker] = useState<{ dayType: DayType; field: keyof TimeRange } | null>(null);
+  const [bgMusicPickerOpen, setBgMusicPickerOpen] = useState(false);
+  const bgMusicPickerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll the wheel picker into view when it opens (it sits near the modal's bottom edge)
+  useEffect(() => {
+    if (bgMusicPickerOpen) {
+      bgMusicPickerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [bgMusicPickerOpen]);
 
   if (!showTimeRangeSettings) return null;
 
@@ -73,9 +82,14 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
   };
 
   const togglePicker = (dayType: DayType, field: keyof TimeRange) => {
+    setBgMusicPickerOpen(false);
     setActivePicker((prev) =>
       prev?.dayType === dayType && prev?.field === field ? null : { dayType, field }
     );
+  };
+
+  const updateBgMusicStopTime = (hhmm: string) => {
+    setDraft((prev) => ({ ...prev, bgMusicStopTime: hhmm }));
   };
 
   const effectiveOverride = dayTypeOverride ?? detectedDayType;
@@ -137,6 +151,7 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
       <div className={styles.modalContainer} onClick={(e) => {
         e.stopPropagation();
         setActivePicker(null);
+        setBgMusicPickerOpen(false);
       }}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>자동 재생 시간대 설정</h2>
@@ -217,6 +232,51 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
                 )}
               </div>
             </>
+          )}
+
+          <div className={styles.manualOverrideRow}>
+            <span className={styles.settingsLabel}>배경음악 자동 정지</span>
+            <label className={styles.toggleSwitch}>
+              <input
+                type="checkbox"
+                checked={draft.bgMusicStopEnabled}
+                onChange={(e) => setDraft((prev) => ({ ...prev, bgMusicStopEnabled: e.target.checked }))}
+              />
+              <span className={styles.toggleSlider} />
+            </label>
+          </div>
+
+          {draft.bgMusicStopEnabled && (
+            <div className={styles.timeBoxContainer}>
+              <span className={styles.timeBlockLabel}>정지 시각</span>
+              <div
+                className={clsx(styles.timeDisplayBox, bgMusicPickerOpen && styles.active)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActivePicker(null);
+                  setBgMusicPickerOpen((prev) => !prev);
+                }}
+              >
+                <span className={styles.timeText}>{draft.bgMusicStopTime}</span>
+                <span className={styles.clockIcon}><Clock size={18} strokeWidth={2.5} /></span>
+              </div>
+
+              {bgMusicPickerOpen && (
+                <div ref={bgMusicPickerRef} className={styles.timeDropdownWheels} onClick={(e) => e.stopPropagation()}>
+                  <Wheel
+                    options={HOUR_OPTIONS}
+                    value={draft.bgMusicStopTime.split(":")[0]}
+                    onChange={(newH) => updateBgMusicStopTime(`${newH}:${draft.bgMusicStopTime.split(":")[1]}`)}
+                  />
+                  <span className={styles.wheelColon}>:</span>
+                  <Wheel
+                    options={MINUTE_OPTIONS}
+                    value={draft.bgMusicStopTime.split(":")[1]}
+                    onChange={(newM) => updateBgMusicStopTime(`${draft.bgMusicStopTime.split(":")[0]}:${newM}`)}
+                  />
+                </div>
+              )}
+            </div>
           )}
         </div>
 
