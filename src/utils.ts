@@ -47,6 +47,8 @@ export const DEFAULT_TIME_RANGE_SETTINGS: AnnouncementTimeRangeSettings = {
   enabled: true,
   weekday: { start: "13:00", end: "19:55" },
   holiday: { start: "10:00", end: "19:55" },
+  bgMusicStopEnabled: false,
+  bgMusicStopTime: "20:00",
 };
 
 export function loadTimeRangeSettings(): AnnouncementTimeRangeSettings {

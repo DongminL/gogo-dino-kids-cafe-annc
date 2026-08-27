@@ -125,6 +125,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  align-self: flex-start; // Prevent stretching to full width when used outside .time-range-compact
   gap: 8px;
   position: relative; // For dropdown positioning if needed perfectly
 

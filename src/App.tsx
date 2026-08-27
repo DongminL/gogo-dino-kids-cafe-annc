@@ -6,6 +6,7 @@ import { isBrokenCustom } from "@/features/announcement/types/announcement";
 import { formatTime } from "@/utils";
 import { useKoreanClock } from "@/hooks/useKoreanClock";
 import { useScheduler, getDayType } from "@/features/announcement/hooks/useScheduler";
+import { useBgMusicStopTime } from "@/features/bg-music/hooks/useBgMusicStopTime";
 import { CategorySection } from "@/features/announcement/components/CategorySection/CategorySection";
 import { BgMusicPanel } from "@/features/bg-music/components/BgMusicPanel/BgMusicPanel";
 import { GlobalBottomBar } from "@/components/GlobalBottomBar/GlobalBottomBar";
@@ -67,6 +68,7 @@ function App() {
     [customDefs]
   );
   useScheduler(currentTime, schedules, timeRangeSettings, effectiveDayType, enqueue, schedulerDefs);
+  useBgMusicStopTime(currentTime, timeRangeSettings, bgMusic.isPlaying, bgMusic.togglePlay);
 
   // ─── Content routing ──────────────────────────────────────────────────────
   const categories = Object.keys(CATEGORY_LABELS) as (keyof typeof CATEGORY_LABELS)[];

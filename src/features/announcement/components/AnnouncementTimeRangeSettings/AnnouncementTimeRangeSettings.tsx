@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import clsx from "clsx";
 import styles from "@/features/announcement/components/AnnouncementTimeRangeSettings/AnnouncementTimeRangeSettings.module.scss";
 import type { AnnouncementTimeRangeSettings as ISettings, DayType, TimeRange } from "@/features/announcement/types/schedule";
@@ -45,7 +45,13 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
 
   const isAuto = dayTypeOverride === null;
   const timeRangeEnabled = draft.enabled;
-  const [activePicker, setActivePicker] = useState<{ dayType: DayType; field: keyof TimeRange } | null>(null);
+  // One open picker at a time, keyed by id: "weekday-start" | "holiday-end" | ... | "bgMusic"
+  const [activePicker, setActivePicker] = useState<string | null>(null);
+
+  // Callback ref: scroll a picker into view on open (the bg-music one sits near the modal's bottom edge)
+  const scrollPickerIntoView = useCallback((node: HTMLDivElement | null) => {
+    node?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, []);
 
   if (!showTimeRangeSettings) return null;
 
@@ -72,19 +78,25 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
     setDayTypeOverride(checked ? null : detectedDayType);
   };
 
-  const togglePicker = (dayType: DayType, field: keyof TimeRange) => {
-    setActivePicker((prev) =>
-      prev?.dayType === dayType && prev?.field === field ? null : { dayType, field }
-    );
+  const togglePicker = (id: string) => {
+    setActivePicker((prev) => (prev === id ? null : id));
+  };
+
+  const updateBgMusicStopTime = (hhmm: string) => {
+    setDraft((prev) => ({ ...prev, bgMusicStopTime: hhmm }));
   };
 
   const effectiveOverride = dayTypeOverride ?? detectedDayType;
 
-  const renderTimeBox = (dayType: DayType, field: keyof TimeRange, label: string) => {
-    const range = draft[dayType];
-    const value = range[field];
+  const renderTimeBox = (
+    id: string,
+    value: string,
+    label: string,
+    onChange: (hhmm: string) => void,
+    dropdownRef?: React.Ref<HTMLDivElement>
+  ) => {
     const [h, m] = value.split(":");
-    const isActive = activePicker?.dayType === dayType && activePicker?.field === field;
+    const isActive = activePicker === id;
 
     return (
       <div className={styles.timeBoxContainer}>
@@ -93,7 +105,7 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
           className={clsx(styles.timeDisplayBox, isActive && styles.active)}
           onClick={(e) => {
             e.stopPropagation();
-            togglePicker(dayType, field);
+            togglePicker(id);
           }}
         >
           <span className={styles.timeText}>{value}</span>
@@ -102,19 +114,20 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
 
         {isActive && (
           <div
+            ref={dropdownRef}
             className={styles.timeDropdownWheels}
             onClick={(e) => e.stopPropagation()}
           >
             <Wheel
               options={HOUR_OPTIONS}
               value={h}
-              onChange={(newH) => updateRange(dayType, field, `${newH}:${m}`)}
+              onChange={(newH) => onChange(`${newH}:${m}`)}
             />
             <span className={styles.wheelColon}>:</span>
             <Wheel
               options={MINUTE_OPTIONS}
               value={m}
-              onChange={(newM) => updateRange(dayType, field, `${h}:${newM}`)}
+              onChange={(newM) => onChange(`${h}:${newM}`)}
             />
           </div>
         )}
@@ -125,9 +138,9 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
   const renderTimeRangeRows = (dayType: DayType) => {
     return (
       <div className={styles.timeRangeCompact}>
-        {renderTimeBox(dayType, "start", "시작")}
+        {renderTimeBox(`${dayType}-start`, draft[dayType].start, "시작", (hhmm) => updateRange(dayType, "start", hhmm))}
         <div className={styles.timeRangeDivider}>~</div>
-        {renderTimeBox(dayType, "end", "종료")}
+        {renderTimeBox(`${dayType}-end`, draft[dayType].end, "종료", (hhmm) => updateRange(dayType, "end", hhmm))}
       </div>
     );
   };
@@ -218,6 +231,21 @@ export function AnnouncementTimeRangeSettings(): React.ReactNode {
               </div>
             </>
           )}
+
+          <div className={styles.manualOverrideRow}>
+            <span className={styles.settingsLabel}>배경음악 자동 정지</span>
+            <label className={styles.toggleSwitch}>
+              <input
+                type="checkbox"
+                checked={draft.bgMusicStopEnabled}
+                onChange={(e) => setDraft((prev) => ({ ...prev, bgMusicStopEnabled: e.target.checked }))}
+              />
+              <span className={styles.toggleSlider} />
+            </label>
+          </div>
+
+          {draft.bgMusicStopEnabled &&
+            renderTimeBox("bgMusic", draft.bgMusicStopTime, "정지 시각", updateBgMusicStopTime, scrollPickerIntoView)}
         </div>
 
         <div className={styles.modalFooter}>
