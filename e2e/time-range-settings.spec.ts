@@ -131,3 +131,54 @@ test.describe("자동 재생 시간대 설정 모달", () => {
     await expect(page.locator("[class*='time-dropdown-wheels']").first()).toBeVisible();
   });
 });
+
+test.describe("배경음악 자동 정지 설정", () => {
+  test("'배경음악 자동 정지' 토글이 있다", async ({ page }) => {
+    await openModal(page);
+    await expect(page.getByText("배경음악 자동 정지")).toBeVisible();
+  });
+
+  test("'시간대 제한 사용'을 꺼도 '배경음악 자동 정지' 토글은 계속 보인다 (독립 기능)", async ({ page }) => {
+    await openModal(page);
+    const row = page.locator("[class*='manual-override-row']").filter({ hasText: "시간대 제한 사용" });
+    await row.locator("[class*='toggle-switch']").click();
+    await expect(page.getByText("배경음악 자동 정지")).toBeVisible();
+  });
+
+  test("기본값에서는 '정지 시각' 박스가 보이지 않는다", async ({ page }) => {
+    await openModal(page);
+    await expect(page.getByText("정지 시각")).not.toBeVisible();
+  });
+
+  test("'배경음악 자동 정지'를 켜면 '정지 시각' 박스가 기본값 20:00으로 나타난다", async ({ page }) => {
+    await openModal(page);
+    const row = page.locator("[class*='manual-override-row']").filter({ hasText: "배경음악 자동 정지" });
+    await row.locator("[class*='toggle-switch']").click();
+    await expect(page.getByText("정지 시각")).toBeVisible();
+    const stopBox = page.getByText("정지 시각").locator("xpath=..").locator("[class*='time-display-box']");
+    await expect(stopBox.getByText("20:00")).toBeVisible();
+  });
+
+  test("'정지 시각' 박스를 클릭하면 시·분 휠 피커가 바로 아래에 나타난다", async ({ page }) => {
+    await openModal(page);
+    const row = page.locator("[class*='manual-override-row']").filter({ hasText: "배경음악 자동 정지" });
+    await row.locator("[class*='toggle-switch']").click();
+
+    const stopContainer = page.getByText("정지 시각").locator("xpath=..");
+    await stopContainer.locator("[class*='time-display-box']").click();
+
+    const wheels = stopContainer.locator("[class*='time-dropdown-wheels']");
+    await expect(wheels).toBeVisible();
+
+    // 박스 바로 아래·중앙에 위치하는지 확인 (오른쪽으로 밀려 보이던 회귀 방지)
+    const boxBox = await stopContainer.locator("[class*='time-display-box']").boundingBox();
+    const wheelsBox = await wheels.boundingBox();
+    expect(boxBox && wheelsBox).toBeTruthy();
+    if (boxBox && wheelsBox) {
+      const boxCenter = boxBox.x + boxBox.width / 2;
+      const wheelsCenter = wheelsBox.x + wheelsBox.width / 2;
+      expect(Math.abs(boxCenter - wheelsCenter)).toBeLessThan(5);
+      expect(wheelsBox.y).toBeGreaterThan(boxBox.y);
+    }
+  });
+});
